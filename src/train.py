@@ -11,6 +11,8 @@ from lightning import Callback, LightningDataModule, LightningModule, Trainer
 from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig, OmegaConf
 
+import sys
+sys.path.append('.')
 from src.utils.torch_utils import tensor_to_list
 
 pyrootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
@@ -37,7 +39,7 @@ log = utils.get_pylogger(__name__)
 
 # os.environ["TRANSFORMERS_CACHE"] = "/nese/mit/group/evlab/u/luwo/cache/huggingface"
 # os.environ["WANDB_CACHE_DIR"] = "/nese/mit/group/evlab/u/luwo/cache/wandb"
-
+os.environ["experiment"] = "emnlp/finetuning/duration_regression_abs_gpt2"
 
 @utils.task_wrapper
 def train(cfg: DictConfig) -> Tuple[dict, dict]:

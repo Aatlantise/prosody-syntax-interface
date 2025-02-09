@@ -27,6 +27,7 @@ class MNISTLitModule(LightningModule):
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
         huggingface_model: str = None,  # only for compatibility
+        save_path: str = None
     ):
         super().__init__()
 

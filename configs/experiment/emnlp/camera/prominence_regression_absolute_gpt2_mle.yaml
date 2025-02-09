@@ -52,7 +52,7 @@ callbacks:
 data:
   batch_size: 64
   dataset_name: helsinki_prominence
-  data_dir: /nese/mit/group/evlab/u/luwo/projects/helsinki-prosody/data
+  data_dir: /home/jm3743/data/helsinki-prosody/data
   train_file: train_360.txt
   val_file: dev.txt
   test_file: test.txt

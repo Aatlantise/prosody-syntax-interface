@@ -17,10 +17,14 @@ conda activate prosody
 conda install --file conda_requirements.txt
 ```
 2. Download the already prepared prominence dataset:
+
 ```
 cd data
 git clone https://github.com/Helsinki-NLP/prosody.git
 ```
+For LibriTTS data, see https://openslr.org/60/, and for LibriTTSLabel, https://github.com/kan-bayashi/LibriTTSLabel.
+
+
 3. Run your first experiment 
 ```
 cd .. # go back to project root

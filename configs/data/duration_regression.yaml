@@ -1,11 +1,16 @@
 _target_: src.data.duration_regression_datamodule.DurationRegressionDataModule
-lab_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTSCorpusLabel/lab/word
-phoneme_lab_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTSCorpusLabel/lab/phone
-wav_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTS
-train_file: test-clean
-val_file: test-clean
-test_file: test-clean
+# lab_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTSCorpusLabel/lab/word
+lab_root: /home/jm3743/data/LibriTTSLabel/lab/word
+# phoneme_lab_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTSCorpusLabel/lab/phone
+phoneme_lab_root: /home/jm3743/data/LibriTTSLabel/lab/phone
+#wav_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTS
+wav_root: /home/jm3743/data/LibriTTS
+train_file: dev-clean
+val_file: dev-clean
+test_file: dev-clean
 dataset_name: LibriTTS
+
+data_cache: data/LibriTTS_cache/
 
 batch_size: 32
 train_val_test_split: null
