@@ -303,4 +303,15 @@ def main():
 
 
 if __name__ == "__main__":
-    get_4_gram()
+    free_4gram = json.load(open("free_4gram.json"))
+    np_4gram = json.load(open("np_4gram.json"))
+    npvp_4gram = json.load(open("npvp_4gram.json"))
+
+    free_conditional, free_marginal = calculate_entropies(free_4gram)
+    print(f"Free text: H(P) = {free_marginal}, H(P|W) = {free_conditional}. Redundancy = {free_marginal - free_conditional}")
+
+    np_conditional, np_marginal = calculate_entropies(np_4gram)
+    print(f"NP-marked text: H(P) = {np_marginal}, H(P|W) = {np_conditional}. Redundancy = {np_marginal - np_conditional}")
+
+    npvp_conditional, npvp_marginal = calculate_entropies(npvp_4gram)
+    print(f"NP, VP-marked text: H(P) = {npvp_marginal}, H(P|W) = {npvp_conditional}. Redundancy = {npvp_marginal - npvp_conditional}")

@@ -1,0 +1,86 @@
+---
+title: "Prosody-syntax"
+output: html_document
+date: "2024-12-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+# Load required libraries
+library(ggplot2)
+library(reshape2) # For data reshaping
+
+# Data
+data <- data.frame(
+  Annotation = c("Free", "NP-marked", "NP, VP-marked"),
+  H_P = c(1.4074227877480188, 1.4074227877480188, 1.4074227877480188),
+  H_P_W = c(0.13797806316925243, 0.10104273425847907, 0.08719611510573981),
+  Redundancy = c(1.2694447245787663, 1.3063800534895398, 1.3202266726422789)
+)
+
+# Reshape data manually for stacked bar chart
+data_long <- melt(data, 
+                  id.vars = "Annotation", 
+                  measure.vars = c("H_P_W", "Redundancy"), 
+                  variable.name = "Component", 
+                  value.name = "Value")
+
+# Rename components for better readability
+data_long$Component <- recode(data_long$Component, 
+                              "H_P_W" = "H(P|W)", 
+                              "Redundancy" = "Redundancy")
+
+# 1. Stacked Bar Chart
+stacked_bar <- ggplot(data_long, aes(x = Annotation, y = Value, fill = Component)) +
+  geom_bar(stat = "identity", position = "stack", color = "black") +
+  labs(
+    title = "Redundancy and Conditional Entropy (H(P|W))",
+    x = "Annotation Scheme",
+    y = "Entropy (bits)",
+    fill = "Component"
+  ) +
+  theme_minimal()
+
+# 2. Line Chart for Redundancy Growth
+line_chart <- ggplot(data, aes(x = Annotation, y = Redundancy, group = 1)) +
+  geom_line(color = "blue", size = 1) +
+  geom_point(color = "blue", size = 3) +
+  labs(
+    title = "Redundancy Growth Across Annotation Schemes",
+    x = "Annotation Scheme",
+    y = "Redundancy"
+  ) +
+  theme_minimal()
+
+# Print the charts
+print(stacked_bar)
+print(line_chart)
+
+ggsave(
+  filename = "ngram_reulsts.pdf",  # File name
+  plot = stacked_bar,                                    # ggplot object
+  device = "pdf",                                 # File format
+  width = 5, height = 3                         # Dimensions in inches
+)
+
+```
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

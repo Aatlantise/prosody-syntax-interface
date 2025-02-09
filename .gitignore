@@ -169,3 +169,6 @@ lightning_logs
 
 # R lib 
 r_scripts/core.14764
+
+# JSON files
+ngram/*.json

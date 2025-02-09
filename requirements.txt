@@ -22,3 +22,23 @@ pre-commit      # hooks for applying linters on commit
 rich            # beautiful text formatting in terminal
 pytest          # tests
 # sh            # for running bash commands in some tests (linux/macos only)
+
+# -------- added to run Helsinki NLP -------- #
+transformers
+nltk
+syllables
+pyphen
+g2p_en
+scikit-learn
+matplotlib
+soundfile
+pycwt
+
+stanza
+
+# additional for debugging...
+
+memory_profiler
+tensorboard
+tensorboardX
+wandb>=0.12.10

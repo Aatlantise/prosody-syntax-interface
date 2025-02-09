@@ -24,7 +24,8 @@ git clone https://github.com/Helsinki-NLP/prosody.git
 3. Run your first experiment 
 ```
 cd .. # go back to project root
-python src/train.py experiment=duration_regression_abs_gpt2
+python src/train.py experiment=emnlp/finetuning/duration_regression_abs_gpt2 logger=csv
+
 ```
 <!-- </div> -->
 
