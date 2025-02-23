@@ -33,7 +33,6 @@ scikit-learn
 matplotlib
 soundfile
 pycwt
-
 stanza
 
 # additional for debugging...
