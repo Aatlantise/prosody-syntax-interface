@@ -10,7 +10,7 @@ from torchmetrics import MinMetric, MaxMetric
 from torch.distributions import Normal
 from torch.nn import L1Loss
 
-from transformers import AdamW, AutoModel, get_linear_schedule_with_warmup
+from transformers import AdamW, AutoModel, get_linear_schedule_with_warmup, AutoTokenizer
 import numpy as np
 from transformers import LlamaForCausalLM, LlamaTokenizer
 
@@ -77,6 +77,8 @@ class TokenTaggingRegressorMLE(LightningModule):
         else:
             print("Loading Huggingface model.")
             self.model = AutoModel.from_pretrained(huggingface_model)
+            # TODO: fix this hard-code
+            self.model.resize_token_embeddings(len(AutoTokenizer.from_pretrained(huggingface_model)) + 4)
 
         if freeze_lm:
             print("Freezing pretrained model.")
