@@ -4,8 +4,8 @@
 # python train.py experiment=example
 
 defaults:
-  - override /data: duration_regression.yaml
-  - override /model_task: token_tagging_regressor_mle.yaml
+  - override /data: pause_regression.yaml
+  - override /model_task: token_tagging_regressor_pause_mle.yaml
   - override /callbacks: prominence_regression.yaml
   - override /logger: many_loggers.yaml
   - override /trainer: gpu.yaml
@@ -13,24 +13,25 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["gpt2", "duration", "regression", "syll_norm"]
+tags: ["gpt2", "pause_after", "regression", "absolute"]
 
 seed: 12345
 
 logger:
   wandb:
-    project: EMNLP-duration-syll
+    project: EMNLP-libritts-pause-after-reg
     entity: prosody
-    tags: ["gpt2", "duration", "regression", "syll_norm"]
-    name: "run-${now:%Y-%m-%d_%H-%M-%S}"
+    tags: ["gpt2", "pause_after", "regression", "absolute"]
+    name: "run-${now:%Y-%m-%d_%H-%M-%S}-prominence-reg-absolute-gpt2"
     group: "gpt2" # Add this line to override the 'group' parameter
     log_model: False # Add this line to override the 'log_model' parameter
 
 trainer:
   min_epochs: 1
   max_epochs: 50
-  precision: 16
+  precision: 16-mixed
   gradient_clip_val: 1
+  accumulate_grad_batches: 4
 
 model_task:
   huggingface_model: gpt2
@@ -54,9 +55,8 @@ data:
   data_cache: /home/jm3743/data/cache
   lab_root: /home/jm3743/data/LibriTTSLabel/lab/word
   wav_root: /home/jm3743/data/LibriTTS
-  train_file: train-clean-100
+  train_file: train-clean-360
   val_file: dev-clean
   test_file: test-clean
   score_last_token: true # only score the first token of a word in loss
-  word_duration_mode: syllable_norm
   debug: false

@@ -13,15 +13,15 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["gpt2", "duration", "regression", "syll_norm"]
+tags: ["gpt2", "duration", "regression", "absolute"]
 
 seed: 12345
 
 logger:
   wandb:
-    project: EMNLP-duration-syll
+    project: EMNLP-duration-abs
     entity: prosody
-    tags: ["gpt2", "duration", "regression", "syll_norm"]
+    tags: ["gpt2", "duration", "regression", "absolute"]
     name: "run-${now:%Y-%m-%d_%H-%M-%S}"
     group: "gpt2" # Add this line to override the 'group' parameter
     log_model: False # Add this line to override the 'log_model' parameter
@@ -29,8 +29,8 @@ logger:
 trainer:
   min_epochs: 1
   max_epochs: 50
-  precision: 16
   gradient_clip_val: 1
+  accumulate_grad_batches: 4
 
 model_task:
   huggingface_model: gpt2
@@ -39,7 +39,7 @@ model_task:
     lr: 0.00005
     weight_decay: 0.1
   scheduler:
-    patience: 2
+    patience: 1
   # use_mlp: false 
   # freeze_lm: false
   # train_last_k_layers: 3
@@ -53,10 +53,10 @@ data:
   dataset_name: LibriTTS
   data_cache: /home/jm3743/data/cache
   lab_root: /home/jm3743/data/LibriTTSLabel/lab/word
-  wav_root: /home/jm3743/data/LibriTTS
+  wav_root: /home/jm3743/data/LibriTTSNP
   train_file: train-clean-100
   val_file: dev-clean
   test_file: test-clean
   score_last_token: true # only score the first token of a word in loss
-  word_duration_mode: syllable_norm
+  word_duration_mode: absolute
   debug: false

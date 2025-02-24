@@ -1,7 +1,10 @@
 _target_: src.data.pause_regression_datamodule.PauseRegressionDataModule
-lab_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTSCorpusLabel/lab/word
-phoneme_lab_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTSCorpusLabel/lab/phone
-wav_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTS
+# lab_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTSCorpusLabel/lab/word
+lab_root: /home/jm3743/data/LibriTTSLabel/lab/word
+# phoneme_lab_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTSCorpusLabel/lab/phone
+phoneme_lab_root: /home/jm3743/data/LibriTTSLabel/lab/phone
+#wav_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTS
+wav_root: /home/jm3743/data/LibriTTS
 train_file: test-clean
 val_file: test-clean
 test_file: test-clean

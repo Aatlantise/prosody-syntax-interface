@@ -53,7 +53,7 @@ data:
   dataset_name: LibriTTS
   data_cache: /home/jm3743/data/cache
   lab_root: /home/jm3743/data/LibriTTSLabel/lab/word
-  wav_root: /home/jm3743/data/LibriTTS
+  wav_root: /home/jm3743/data/LibriTTSNP
   train_file: train-clean-100
   val_file: dev-clean
   test_file: test-clean
