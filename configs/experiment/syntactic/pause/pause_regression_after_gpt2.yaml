@@ -52,10 +52,10 @@ callbacks:
 data:
   batch_size: 64
   dataset_name: LibriTTS
-  data_cache: /home/jm3743/data/cache
+  data_cache: /home/jm3743/data/cache/pause
   lab_root: /home/jm3743/data/LibriTTSLabel/lab/word
   wav_root: /home/jm3743/data/LibriTTS
-  train_file: train-clean-360
+  train_file: train-clean-100
   val_file: dev-clean
   test_file: test-clean
   score_last_token: true # only score the first token of a word in loss
