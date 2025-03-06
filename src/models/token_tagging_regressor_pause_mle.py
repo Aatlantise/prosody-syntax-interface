@@ -11,7 +11,7 @@ from torch.distributions import Normal
 from torch.distributions.gamma import Gamma
 from torch.nn import L1Loss
 
-from transformers import AdamW, AutoModel, get_linear_schedule_with_warmup
+from transformers import AdamW, AutoModel, get_linear_schedule_with_warmup, AutoTokenizer
 import numpy as np
 
 from memory_profiler import profile
@@ -71,6 +71,10 @@ class TokenTaggingRegressorPauseMLE(LightningModule):
 
         # Load model and add head
         self.model = AutoModel.from_pretrained(huggingface_model)
+        # TODO: fix this hard-code
+        new_tokenizer_len = len(AutoTokenizer.from_pretrained(huggingface_model)) + 4
+        self.model.resize_token_embeddings(new_tokenizer_len)
+        print(f"Model resized to {new_tokenizer_len}")
 
         if freeze_lm:
             print("Freezing pretrained model.")

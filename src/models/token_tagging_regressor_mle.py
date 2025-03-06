@@ -78,7 +78,9 @@ class TokenTaggingRegressorMLE(LightningModule):
             print("Loading Huggingface model.")
             self.model = AutoModel.from_pretrained(huggingface_model)
             # TODO: fix this hard-code
-            self.model.resize_token_embeddings(len(AutoTokenizer.from_pretrained(huggingface_model)) + 4)
+            new_tokenizer_len = len(AutoTokenizer.from_pretrained(huggingface_model)) + 4
+            self.model.resize_token_embeddings(new_tokenizer_len)
+            print(f"Model resized to {new_tokenizer_len}")
 
         if freeze_lm:
             print("Freezing pretrained model.")

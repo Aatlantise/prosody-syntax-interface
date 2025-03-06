@@ -176,6 +176,7 @@ class DurationRegressionDataModule(LightningDataModule):
 
         syntactic_special_tokens = {"additional_special_tokens": ["<NP>", "<VP>", "</NP>", "</VP>"]}
         self.tokenizer.add_special_tokens(syntactic_special_tokens)
+        print(f"Token added: {syntactic_special_tokens}")
 
         self.pad_token_id = self.tokenizer.pad_token_id
         print(f"Dataloader: padding with token id: {self.pad_token_id}")
