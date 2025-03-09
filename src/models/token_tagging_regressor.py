@@ -11,12 +11,18 @@ from transformers import AdamW, AutoModel, get_linear_schedule_with_warmup
 import numpy as np
 
 from src.utils import utils
-from src.utils.torch_utils import masked_loss, build_regressor
+from src.utils.torch_utils import (
+    masked_loss,
+    build_regressor,
+    freeze_pretrained_model,
+    print_num_trainable_params
+)
 from src.utils.torch_metrics import (
     MaskedMeanSquaredError,
     MaskedR2Score,
     MaskedPearsonCorrCoef,
     MaskedSpearmanCorrCoeff,
+    MeanMetric
 )
 
 

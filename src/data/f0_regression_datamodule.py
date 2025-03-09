@@ -15,6 +15,7 @@ from transformers.models.auto.tokenization_auto import AutoTokenizer
 from transformers import DataCollatorWithPadding
 from omegaconf import DictConfig, OmegaConf
 from transformers import GPT2Tokenizer, BertTokenizer, AutoTokenizer, AutoModel
+from src.utils.gpt2_letter_tokenizer import CustomGPT2Tokenizer, mGPTTokenizer, mBERTTokenizer, CustomBERTTokenizer
 
 from src.data.components.feature_extractors import ProsodyFeatureExtractor
 from src.data.components.datasets import TokenTaggingDataset
@@ -54,10 +55,11 @@ class F0RegressionDataModule(LightningDataModule):
         use_fast_tokenizer: bool = False,
         batch_size: int = 64,
         max_length: int = 128,
-        num_workers: int = 0,
+        num_workers: int = 1,
         pin_memory: bool = False,
         train_val_test_split: Tuple[int, int, int] = (0.8, 0.1, 0.1),
         model_name: str = None,
+        tokenization_by_letter: bool = False,
         f0_mode: str = "dct",
         f0_n_coeffs: int = 4,
         celex_path: str = None,
@@ -69,6 +71,7 @@ class F0RegressionDataModule(LightningDataModule):
         relative_to_mean: bool = False,
         word_stats_path: str = None,
         debug: bool = False,
+        explicit_words_length: bool = False,
     ):
         super().__init__()
 
@@ -145,6 +148,7 @@ class F0RegressionDataModule(LightningDataModule):
             relative_to_mean=self.hparams.relative_to_mean,
             word_stats=self.hparams.word_stats_path,
             debug=self.hparams.debug,
+            explicit_words_length=self.hparams.explicit_words_length,
         )
 
         return texts, f0_curves, dataset
@@ -167,30 +171,84 @@ class F0RegressionDataModule(LightningDataModule):
         if not self.tokenizer:
             if "gpt2" in self.hparams.model_name:
                 print("Using GPT2 tokenizer")
-                self.tokenizer = AutoTokenizer.from_pretrained(
+                self.tokenizer = GPT2Tokenizer.from_pretrained(
                     self.hparams.model_name, add_prefix_space=True
                 )
                 self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
             elif "bert" in self.hparams.model_name.lower():
-                print(f"Using {self.hparams.model_name} tokenizer")
-                self.tokenizer = AutoTokenizer.from_pretrained(self.hparams.model_name)
-                self.tokenizer.pad_token_id = self.tokenizer.sep_token_id
+                if self.hparams.tokenization_by_letter:
+                    print('Using mBERT letter tokenizer')
+                    self.tokenizer = mBERTTokenizer.from_pretrained(self.hparams.model_name)
+                    # Use the correct padding token
+                    # self.tokenizer.pad_token_id = self.tokenizer.sep_token_id
+                    self.tokenizer.pad_token_id = self.tokenizer.pad_token_id or self.tokenizer.convert_tokens_to_ids("[PAD]")
+                else:
+                    print(f"Using {self.hparams.model_name} tokenizer.")
+                    ## uncomment the line below to use the custom tokenizer for filtering out misaligned tokens
+                    # self.tokenizer = CustomBERTTokenizer.from_pretrained(self.hparams.model_name)
+                    ## uncomment the line below to use the original tokenizer
+                    self.tokenizer = BertTokenizer.from_pretrained(self.hparams.model_name)
+                    self.tokenizer.pad_token_id = self.tokenizer.pad_token_id or self.tokenizer.convert_tokens_to_ids("[PAD]")
+            elif "mGPT" in self.hparams.model_name:
+                if self.hparams.tokenization_by_letter:
+                    print('Using mGPT letter tokenizer')
+                    self.tokenizer = mGPTTokenizer.from_pretrained('ai-forever/mGPT')
+                    self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+                else:
+                    print(f'Using {self.hparams.model_name} tokenizer')
+                    # self.tokenizer = CustomGPT2Tokenizer.from_pretrained('ai-forever/mGPT')
+                    self.tokenizer = GPT2Tokenizer.from_pretrained('ai-forever/mGPT')
+                    self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+            elif "llama" in self.hparams.model_name:
+                if self.hparams.tokenization_by_letter:
+                    print('Using Llama letter tokenizer')
+                    self.tokenizer = AutoTokenizer.from_pretrained(self.hparams.model_name)
+                    self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+                else:
+                    print('Using Llama tokenizer')
+                    self.tokenizer = AutoTokenizer.from_pretrained(self.hparams.model_name)
+                    def tok(text):
+                        words = text.split(" ")
+                        return words
+                    self.tokenizer.tokenize = tok
+                    self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+                
             else:
                 raise ValueError("Model name not recognized.")
         self.pad_token_id = self.tokenizer.pad_token_id
         print(f"Dataloader: padding with token id: {self.pad_token_id}")
 
-        (
-            self.train_texts,
-            self.train_durations,
-            self.train_dataset,
-        ) = self.prepare_dataset(self.hparams.train_file)
-        self.val_texts, self.val_durations, self.val_dataset = self.prepare_dataset(
-            self.hparams.val_file
-        )
-        self.test_texts, self.test_durations, self.test_dataset = self.prepare_dataset(
-            self.hparams.test_file
-        )
+        train_texts, train_durations, train_dataset = self.prepare_dataset(self.hparams.train_file)
+        val_texts, val_durations, val_dataset = self.prepare_dataset(self.hparams.val_file)
+        test_texts, test_durations, test_dataset = self.prepare_dataset(self.hparams.test_file)
+
+        full_dataset = ConcatDataset([train_dataset, val_dataset, test_dataset])
+        full_texts = train_texts + val_texts + test_texts
+        full_durations = train_durations + val_durations + test_durations
+
+        indices = torch.randperm(len(full_dataset)).tolist()
+        # print("Full Dataset Length: ", len(full_dataset))
+
+        train_size = int(self.hparams.train_val_test_split[0] * len(full_dataset))
+        val_size = int(self.hparams.train_val_test_split[1] * len(full_dataset))
+        test_size = len(full_dataset) - train_size - val_size
+
+        train_indices = indices[:train_size]
+        val_indices = indices[train_size:train_size + val_size]
+        test_indices = indices[train_size + val_size:]
+
+        # Create subsets using the shuffled indices
+        self.train_dataset = torch.utils.data.Subset(full_dataset, train_indices)
+        self.val_dataset = torch.utils.data.Subset(full_dataset, val_indices)
+        self.test_dataset = torch.utils.data.Subset(full_dataset, test_indices)
+        # Create subsets train_texts, val_texts, test_texts
+        self.train_texts = [full_texts[i] for i in train_indices]
+        self.val_texts = [full_texts[i] for i in val_indices]
+        self.test_texts = [full_texts[i] for i in test_indices]
+        # Create subsets train_durations, val_durations, test_durations
+        self.train_durations = [full_durations[i] for i in train_indices]
+        self.val_durations = [full_durations[i] for i in val_indices]
+        self.test_durations = [full_durations[i] for i in test_indices]
 
         print(f"Train dataset size: {len(self.train_dataset)}")
         print(f"Validation dataset size: {len(self.val_dataset)}")
@@ -200,7 +258,7 @@ class F0RegressionDataModule(LightningDataModule):
     #     return encode_and_pad_batch(batch, self.tokenizer, self.hparams.model_name)
 
     def collate(self, batch):
-        return vector_collate_fn(batch, self.tokenizer.pad_token_id)
+        return vector_collate_fn(batch, self.pad_token_id)
 
     def train_dataloader(self):
         return DataLoader(
