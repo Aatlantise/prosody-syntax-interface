@@ -52,10 +52,10 @@ data:
   model_name: gpt2
   batch_size: 64
   dataset_name: LibriTTS
-  data_cache: /om/user/luwo/projects/data/cache
-  lab_root: /om/user/luwo/projects/data/LibriTTSCorpusLabel/lab/word
-  phoneme_lab_root: /om/user/luwo/projects/data/LibriTTSCorpusLabel/lab/phone
-  wav_root: /om/user/luwo/projects/data/LibriTTS
+  lab_root: /home/jm3743/data/LibriTTSCorpusLabel/lab/word
+  phoneme_lab_root: /home/jm3743/data/LibriTTSCorpusLabel/lab/phone
+  data_cache: /home/jm3743/data/cache/duration_abs
+  wav_root: /home/jm3743/data/LibriTTS
   train_file: train-clean-100
   val_file: dev-clean
   test_file: test-clean

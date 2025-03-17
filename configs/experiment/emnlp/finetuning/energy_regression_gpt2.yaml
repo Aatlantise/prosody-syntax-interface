@@ -5,7 +5,7 @@
 
 defaults:
   - override /data: energy_regression.yaml
-  - override /model_task: token_tagging_regressor_mle.yaml
+  - override /model_task: token_tagging_mdn_mle.yaml
   - override /callbacks: prominence_regression.yaml
   - override /logger: many_loggers.yaml
   - override /trainer: gpu.yaml
@@ -50,10 +50,10 @@ callbacks:
 data:
   batch_size: 64
   dataset_name: LibriTTS
-  data_cache: /nese/mit/group/evlab/u/luwo/projects/data/cache
-  lab_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTSCorpusLabel/lab/word
-  wav_root: /nese/mit/group/evlab/u/luwo/projects/data/LibriTTS/LibriTTS
-  train_file: train-clean-360
+  data_cache: /home/jm3743/data/cache/duration_abs
+  lab_root: /home/jm3743/data/LibriTTSLabel/lab/word
+  wav_root: /home/jm3743/data/LibriTTS
+  train_file: train-clean-100
   val_file: dev-clean
   test_file: test-clean
   score_last_token: true # only score the first token of a word in loss
