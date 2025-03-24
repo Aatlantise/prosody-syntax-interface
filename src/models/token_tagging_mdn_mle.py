@@ -408,19 +408,34 @@ class TokenTaggingMDNMLE(LightningModule):
     def test_step(self, batch: Dict[str, torch.tensor], batch_idx: int):
         # loss is batch loss, test_loss tracks it over the epoch
         (
-            neg_masked_log_likelihood_loss,
-            masked_mae,
-            mu,
-            var,
-            pi,
-            vector_loss_mask,
-            loss_mask,
+            neg_masked_log_likelihood_loss, # scalar
+            masked_mae, # scalar
+            mu, # size [batch_size, len, num_mixture, 1]
+            var, # size [batch_size, len, num_mixture, 1]
+            pi, # size [batch_size, len, num_mixture]
+            vector_loss_mask, # size [batch_size, len, 1]
+            loss_mask, # size [batch_size, len]
         ) = self.step(batch)
         # self.test_loss(preds, batch["tokenized_labels"], batch["loss_mask"])
         self.test_loss(neg_masked_log_likelihood_loss)
         self.log(
             "test/loss", self.test_loss, on_step=False, on_epoch=True, prog_bar=True
         )
+        # pdb.set_trace()
+        # self.test_mae(masked_mae)
+        # self.log(masked_mae)
+        # # self.test_r2(preds, batch["tokenized_labels"], batch["loss_mask"])
+        # self.test_r2(mu, batch["tokenized_labels"], batch["loss_mask"])
+        # self.log("test/r2", self.test_r2, on_step=False, on_epoch=True, prog_bar=True)
+        # # self.test_pearson(preds, batch["tokenized_labels"], batch["loss_mask"])
+        # self.test_pearson(mu, batch["tokenized_labels"], batch["loss_mask"])
+        # self.log(
+        #     "test/pearson",
+        #     self.test_pearson,
+        #     on_step=False,
+        #     on_epoch=True,
+        #     prog_bar=True,
+        # )
 
         # TODO: make callback work
         # save predictions
