@@ -53,7 +53,7 @@ data:
   batch_size: 64
   dataset_name: LibriTTS
   data_cache: /home/jm3743/data/cache/pause_np
-  lab_root: /home/jm3743/data/LibriTTSLabel/lab/word
+  lab_root: /home/jm3743/data/LibriTTSLabelNP/lab/word
   wav_root: /home/jm3743/data/LibriTTSNP
   train_file: train-clean-100
   val_file: dev-clean
