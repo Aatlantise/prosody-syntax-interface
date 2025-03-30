@@ -5,7 +5,7 @@
 
 defaults:
   - override /data: duration_regression.yaml
-  - override /model_task: token_tagging_regressor_mle.yaml
+  - override /model_task: token_tagging_mdn_mle.yaml
   - override /callbacks: prominence_regression.yaml
   - override /logger: many_loggers.yaml
   - override /trainer: gpu.yaml
