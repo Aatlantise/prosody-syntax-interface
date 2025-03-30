@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name="energy"
+#SBATCH --job-name="add-labels"
 #SBATCH --output="%x.o%j"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -11,6 +11,4 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-
-#python src/train.py experiment=syntactic/energy/energy_regression_gpt2_np logger=csv
-python src/train.py experiment=syntactic/energy/energy_regression_gpt2_npvp logger=csv >> energy.log
+python -m src.syntax

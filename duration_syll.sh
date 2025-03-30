@@ -15,5 +15,5 @@ source env.sh
 
 
 #python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2 logger=csv >> syll.log
-python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_np logger=csv >> syll.log
+#python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_np logger=csv >> syll.log
 python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_npvp logger=csv >> syll.log
