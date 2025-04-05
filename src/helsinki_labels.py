@@ -44,7 +44,8 @@ def add_tokens(split, model):
                         i += 1
 
                 local_lines = []
-            print(line)
+            f.write(line)
+            g.write(line)
 
         else:
             local_lines.append(line)
