@@ -14,6 +14,14 @@ source env.sh
 
 
 
-python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2 logger=csv >> syll.log
-python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_np logger=csv >> syll.log
-python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_npvp logger=csv >> syll.log
+python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2 seed=1 logger=csv >> syll.log
+python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_np seed=1 logger=csv >> syll.log
+python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_npvp seed=1 logger=csv >> syll.log
+
+python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2 seed=2 logger=csv >> syll.log
+python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_np seed=2 logger=csv >> syll.log
+python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_npvp seed=2 logger=csv >> syll.log
+
+python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2 seed=3 logger=csv >> syll.log
+python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_np seed=3 logger=csv >> syll.log
+python src/train.py experiment=syntactic/duration/duration_regression_syll_gpt2_npvp seed=3 logger=csv >> syll.log

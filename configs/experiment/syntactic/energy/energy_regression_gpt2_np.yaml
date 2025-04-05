@@ -1,4 +1,4 @@
-# energy_regression_gpt2.yaml# @package _global_
+# @package _global_
 
 # to execute this experiment run:
 # python train.py experiment=example

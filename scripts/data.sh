@@ -4,12 +4,11 @@ do
   do
     for k in $(ls $i/$j) # 128104
     do
-#      sed -i 's/<VP> //g' $i/$j/$k/*.normalized.txt
-#      sed -i 's/ <\/VP>//g' $i/$j/$k/*.normalized.txt
-      for file in $(ls $i/$j/$k/*.original.txt*)
+#      cp ~/data/LibriTTSNPVP/$i/$j/$k/*.syntactic.txt ~/data/LibriTTSNP/$i/$j/$k/
+#      sed -i 's/<VP> //g' $i/$j/$k/*.syntactic.txt
+#      sed -i 's/ <\/VP>//g' $i/$j/$k/*.syntactic.txt
+      for file in $(ls $i/$j/$k/*.syntactic.txt*)
       do
-#        mv $file $file.temp
-	      mv "$file" "${file%.temp}"
 	      new_file="${file%.syntactic.txt}.original.txt"
 
         # Rename the file

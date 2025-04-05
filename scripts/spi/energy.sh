@@ -12,5 +12,6 @@
 
 source env.sh
 
-#python src/train.py experiment=syntactic/energy/energy_regression_gpt2_np logger=csv
-python src/train.py experiment=syntactic/energy/energy_regression_gpt2_npvp logger=csv >> energy.log
+
+python src/train.py experiment=syntactic/energy/energy_regression_gpt2_np seed=1 logger=csv >> energy.log
+python src/train.py experiment=syntactic/energy/energy_regression_gpt2_npvp seed=1 logger=csv >> energy.log

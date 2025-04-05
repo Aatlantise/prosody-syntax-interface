@@ -95,6 +95,10 @@ class HelsinkiDataModule(LightningDataModule):
                 self.hparams.tokenizer_name, use_fast=True
             )
 
+        syntactic_special_tokens = {"additional_special_tokens": ["<NP>", "<VP>", "</NP>", "</VP>"]}
+        self.tokenizer.add_special_tokens(syntactic_special_tokens)
+        print(f"Token added: {syntactic_special_tokens}")
+
         self.dataset_path = Path(self.hparams.data_dir)
         if not os.path.exists(self.dataset_path):
             raise ValueError("The provided folder does not exist.")
