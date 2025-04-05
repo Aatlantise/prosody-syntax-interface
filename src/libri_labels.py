@@ -2,6 +2,11 @@ import pdb
 import os
 from tqdm import tqdm
 
+"""
+This code snippet adds syntactic tag lines to LibriTTSLabel line data (one word or syllable per line).
+To access code that adds syntactic tags (e.g. <NP>, </VP>) to data, see src/syntax.py.
+"""
+
 def unit_test():
     word_dir = "/home/jm3743/data/LibriTTSLabelNP/lab/word/"
     text_dir = "/home/jm3743/data/LibriTTSNP/"
@@ -14,6 +19,12 @@ def unit_test():
 
 
 def add_tokens(running_text, sample_line_input):
+    """
+    Add <NP>, </NP>, <VP>, </VP> lines to LibriTTSLabel data.
+
+    Requires annotated LibriTTS .normalized.txt data
+
+    """
     running_tokens = running_text.split(" ")
     lines_with_tags = []
     lines = sample_line_input.split('\n')
@@ -27,53 +38,40 @@ def add_tokens(running_text, sample_line_input):
     for token in running_tokens:
         if token in ["<NP>", "<VP>"]:
             n_special_tags += 1
-            # pdb.set_trace()
 
             # iterate until we see the first word of the NP as there may be empty duration lines
             while line < len(lines) and lines[line].split('\t')[-1] == "":
                 n_blanks += 1
-                # pdb.set_trace()
-                # print(lines[line])
                 lines_with_tags.append(lines[line])
                 line += 1
 
-            # pdb.set_trace()
             b, e, word = lines[line].split("\t")
-            # print("\t".join([b, b, token]))
             lines_with_tags.append("\t".join([b, b, token]))
 
 
         elif token in ["</NP>", "</VP>"]:
             n_special_tags += 1
-            # pdb.set_trace()
-            # print("\t".join([e, e, token]))
             lines_with_tags.append("\t".join([e, e, token]))
 
         else:
-            # pdb.set_trace()
             while line < len(lines) and lines[line].split('\t')[-1] == "":
                 n_blanks += 1
-                # pdb.set_trace()
-                # print(lines[line])
                 lines_with_tags.append(lines[line])
                 line += 1
 
             n_words += 1
             b, e, word = lines[line].split("\t")
 
-            # print(lines[line])
             lines_with_tags.append(lines[line])
             line += 1
     for l in lines[line:]:
-        # print(l)
         lines_with_tags.append(l)
         if l.split('\t')[-1] == "":
             n_blanks += 1
-    return "\n".join(lines_with_tags), n_words + n_blanks == n_lines,
+    return "\n".join(lines_with_tags), n_words + n_blanks == n_lines
 
 
 def main():
-    from tqdm import tqdm
 
     word_read_dir = "/home/jm3743/data/LibriTTSLabel/lab/word/"
     word_write_dir = "/home/jm3743/data/LibriTTSLabelNPVP/lab/word/"

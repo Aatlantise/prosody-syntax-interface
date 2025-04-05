@@ -3,12 +3,19 @@ from ngram.ngram import annotate_phrases
 import os
 from tqdm import tqdm
 
+"""
+This code snippet adds syntactic tags (e.g. <NP>, </VP>) to data.
+To access code that adds syntactic tags (generated here) to line data (one word or syllable per line), see libri_labels.py.
+"""
 
-# Define your Python function
+
 def process_content(norm, syn, model):
     """
-    Example function that takes the content of a file and processes it.
-    Modify this function with your actual processing logic.
+    Use ngram.ngram.annotate_phrases to annotate syntactic tags.
+
+    :param norm: Normalized.txt filename
+    :param syn: Syntactic.txt filename
+    :param model: stanza model
     """
     analysis = model(open(norm).read())
     annotated_output = [annotate_phrases(s.constituency) for s in analysis.sentences]

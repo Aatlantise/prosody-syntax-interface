@@ -11,4 +11,4 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python -m src.syntax
+python -m src.helsinki_labels
