@@ -288,6 +288,9 @@ class TokenTaggingDataset(Dataset):
             total=len(self.inputs),
             desc="Preprocessing samples",
         ):
+            # pass if empty data point
+            if not text:
+                continue
             result = tokenize_text_with_labels(
                 text=text,
                 labels=labels_per_word,

@@ -11,7 +11,7 @@ def add_tokens(split, model):
     Requires annotated LibriTTS .normalized.txt data
 
     """
-    assert split in ['train_100', 'dev', 'test']
+    assert split in ['train_100', 'dev', 'test', 'train_360']
 
     helsinki_file_lines = open(f"/home/jm3743/data/helsinki-prosody/data/{split}.txt")
 
@@ -60,9 +60,10 @@ def main():
     )
 
     for split in [
-        'dev',
-        'test',
-        'train_100'
+        # 'dev',
+        # 'test',
+        # 'train_100',
+        'train_360'
     ]:
         add_tokens(split, nlp)
 
