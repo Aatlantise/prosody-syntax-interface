@@ -276,12 +276,10 @@ class TokenTaggingMDNMLE(LightningModule):
             log_likelihoods = []
             for i in range(self.num_mixtures):
                 # Construct the multivariate normal distribution for each mixture
-                # pdb.set_trace()
                 dist = MultivariateNormal(mu[:, :, i, :], torch.diag_embed(var[:, :, i, :]))
                 # Compute log-likelihood of the true labels for this mixture
 
                 labels[torch.isnan(labels)] = -9.99e2 # fill in nan values for energy
-                pdb.set_trace()
 
                 log_likelihood = dist.log_prob(labels)
                 log_likelihoods.append(log_likelihood)

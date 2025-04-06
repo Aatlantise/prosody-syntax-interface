@@ -203,7 +203,9 @@ class PauseRegressionDataModule(LightningDataModule):
             self.train_durations,
             self.val_durations,
         ) = train_test_split(
-            all_texts, all_duration, test_size=0.1, random_state=np.random.get_state()
+            all_texts, all_duration, test_size=0.1,
+            # random_state=np.random.get_state()
+            random_state=42
         )
 
         self.train_dataset = TokenTaggingDataset(
