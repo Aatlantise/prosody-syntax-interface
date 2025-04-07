@@ -18,7 +18,7 @@ python src/train.py experiment=syntactic/pause/pause_regression_after_gpt2_npvp 
 
 python src/train.py experiment=syntactic/pause/pause_regression_after_gpt2 seed=2 logger=csv >> pause.log
 python src/train.py experiment=syntactic/pause/pause_regression_after_gpt2_np seed=2 logger=csv >> pause.log
-python src/train.py experiment=syntactic/pause/pause_regression_after_gpt2_npqvp seed=2 logger=csv >> pause.log
+python src/train.py experiment=syntactic/pause/pause_regression_after_gpt2_npvp seed=2 logger=csv >> pause.log
 
 python src/train.py experiment=syntactic/pause/pause_regression_after_gpt2 seed=3 logger=csv >> pause.log
 python src/train.py experiment=syntactic/pause/pause_regression_after_gpt2_np seed=3 logger=csv >> pause.log
