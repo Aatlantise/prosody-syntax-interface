@@ -45,7 +45,11 @@ def extract_examples(df):
     for i in range(len(current_context)):
         text_context = " ".join(tok["token"] for tok in current_context[:i+1])
         duration = current_context[i]["end"] - current_context[i]["start"]
-        label = 1 if "E-NP" in current_context[i]["label"] or "E-VP" in current_context[i]["label"] else 0
+        label = 0
+        if "E-NP" in current_context[i]["label"]:
+            label += 1
+        if "E-VP" in current_context[i]["label"]:
+            label += 1
         examples.append({
             "text": text_context,
             "duration": duration,
@@ -85,6 +89,7 @@ class PhraseBoundaryDataset(Dataset):
         return {
             "text": item["text"],
             "duration": torch.tensor([item["duration"]], dtype=torch.float),
+            #todo: add pause data
             "label": torch.tensor(item["label"], dtype=torch.float)
         }
 
