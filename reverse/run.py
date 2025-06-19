@@ -11,7 +11,7 @@ from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 from data import PhraseBoundaryDataset, collate_fn, get_libritts_data, load_data, extract_examples
-from model import GPT2WithDurationClassifier
+from model import GPT2WithDurationClassifier, GPT2Classifier
 
 
 def train(model, dataloader, optimizer, device):
@@ -68,7 +68,7 @@ def evaluate(model, dataloader, device):
         "f1": f1
     }
 
-def main():
+def main(args):
     train_examples, val_examples, test_examples = get_libritts_data()
 
     # Assume examples is a list of {"text", "duration", "label"}
@@ -81,14 +81,17 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False, collate_fn=collate_fn)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = GPT2WithDurationClassifier().to(device)
+    if args.use_duration_info:
+        model = GPT2WithDurationClassifier().to(device)
+    else:
+        model = GPT2Classifier().to(device)
 
     optimizer = AdamW(model.parameters(), lr=5e-5)
 
     min_loss = 99.99
     no_improvement_epoch = 0
 
-    for epoch in range(3):
+    for epoch in range(10):
         train_loss = train(model, train_loader, optimizer, device)
         val_metrics = evaluate(model, val_loader, device)
 
@@ -105,13 +108,16 @@ def main():
     test_metrics = evaluate(model, test_loader, device)
     print(f"  Test Loss: {test_metrics['loss']:.4f} | Val Acc: {test_metrics['accuracy']:.4f} | F1: {test_metrics['f1']:.4f}")
 
-def _test():
+def _test(args):
     filepath = "sample.tsv"
     df = load_data(filepath)
     examples = extract_examples(df)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = GPT2WithDurationClassifier().to(device)
+    if args.use_duration_info:
+        model = GPT2WithDurationClassifier().to(device)
+    else:
+        model = GPT2Classifier().to(device)
 
     optimizer = AdamW(model.parameters(), lr=5e-5)
 
@@ -134,5 +140,9 @@ def _test():
         f"  Initial Loss: {test_metrics['loss']:.4f} | Acc: {test_metrics['accuracy']:.4f} | F1: {test_metrics['f1']:.4f}")
 
 if __name__ == "__main__":
-    main()
-    # _test()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--use_duration_info", default=False, action="store_true")
+    args = parser.parse_args()
+
+    main(args)
+    # _test(args)

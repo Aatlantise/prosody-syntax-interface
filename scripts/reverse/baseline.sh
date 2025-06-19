@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name="spi-reverse"
+#SBATCH --job-name="spi-baseline"
 #SBATCH --output="%x.o%j"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -11,4 +11,4 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python reverse/run.py >> reverse_short.log
+python reverse/run.py >> baseline-10.log
