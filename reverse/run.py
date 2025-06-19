@@ -5,7 +5,7 @@ import argparse
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torch.optim import AdamW
-from torch.nn.functional import binary_cross_entropy_with_logits
+from torch.nn.functional import cross_entropy
 
 from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
@@ -14,21 +14,27 @@ from data import PhraseBoundaryDataset, collate_fn, get_libritts_data, load_data
 from model import GPT2WithDurationClassifier, GPT2Classifier
 
 
-def train(model, dataloader, optimizer, device):
+def train(args, model, dataloader, optimizer, device):
     model.train()
     total_loss = 0.0
+    batch_loss = 0.0
 
-    for texts, durations, labels in tqdm(dataloader):
-        durations, labels = durations.to(device), labels.to(device)
+    batches = tqdm(dataloader)
+    for texts, durations, labels in batches:
+        if args.debug:
+            batches.set_description(desc=f"Train loss: {batch_loss}")
+        durations, labels = durations.to(device), labels.to(device).long()
 
         logits = model(texts, durations)
-        loss = binary_cross_entropy_with_logits(logits, labels)
+        loss = cross_entropy(logits, labels)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
+        batch_loss = loss.item()
         total_loss += loss.item()
+        assert batch_loss > 0, print(labels)
 
     return total_loss / len(dataloader)
 
@@ -36,7 +42,6 @@ def evaluate(model, dataloader, device):
     model.eval()
     all_preds = []
     all_labels = []
-    all_probs = []
     total_loss = 0.0
 
     with torch.no_grad():
@@ -45,16 +50,14 @@ def evaluate(model, dataloader, device):
             labels = labels.to(device)
 
             logits = model(texts, durations)
-            loss = binary_cross_entropy_with_logits(logits, labels)
+            loss = cross_entropy(logits, labels)
             total_loss += loss.item()
 
-            probs = torch.sigmoid(logits)
-            preds = (probs > 0.5).long().cpu()
+            preds = torch.argmax(logits, dim=1).cpu()
             labels = labels.long()
 
             all_preds.extend(preds.tolist())
             all_labels.extend(labels.tolist())
-            all_probs.extend(probs.cpu().tolist())
 
     avg_loss = total_loss / len(dataloader)
     acc = accuracy_score(all_labels, all_preds)
@@ -91,8 +94,8 @@ def main(args):
     min_loss = 99.99
     no_improvement_epoch = 0
 
-    for epoch in range(10):
-        train_loss = train(model, train_loader, optimizer, device)
+    for epoch in range(3):
+        train_loss = train(args, model, train_loader, optimizer, device)
         val_metrics = evaluate(model, val_loader, device)
 
         print(f"Epoch {epoch+1}")
@@ -128,7 +131,7 @@ def _test(args):
     val_loader = DataLoader(PhraseBoundaryDataset(val_ex), batch_size=8, shuffle=False, collate_fn=collate_fn)
     test_loader = DataLoader(PhraseBoundaryDataset(test_ex), batch_size=8, shuffle=False, collate_fn=collate_fn)
 
-    train_loss = train(model, train_loader, optimizer, device)
+    train_loss = train(args, model, train_loader, optimizer, device)
     val_metrics = evaluate(model, val_loader, device)
 
     print(f"Epoch 0")
@@ -142,6 +145,7 @@ def _test(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--use_duration_info", default=False, action="store_true")
+    parser.add_argument("--debug", default=False, action="store_true")
     args = parser.parse_args()
 
     main(args)

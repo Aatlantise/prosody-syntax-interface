@@ -11,4 +11,4 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python reverse/run.py >> baseline-10.log
+python reverse/run.py >> baseline.log
