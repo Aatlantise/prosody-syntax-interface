@@ -18,7 +18,7 @@ def train(model, dataloader, optimizer, device):
     model.train()
     total_loss = 0.0
 
-    for texts, durations, labels in dataloader:
+    for texts, durations, labels in tqdm(dataloader):
         durations, labels = durations.to(device), labels.to(device)
 
         logits = model(texts, durations)
@@ -40,7 +40,7 @@ def evaluate(model, dataloader, device):
     total_loss = 0.0
 
     with torch.no_grad():
-        for texts, durations, labels in dataloader:
+        for texts, durations, labels in tqdm(dataloader):
             durations = durations.to(device)
             labels = labels.to(device)
 
@@ -76,9 +76,9 @@ def main():
     val_dataset = PhraseBoundaryDataset(val_examples)
     test_dataset = PhraseBoundaryDataset(test_examples)
 
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, collate_fn=collate_fn)
-    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, collate_fn=collate_fn)
-    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, collate_fn=collate_fn)
+    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, collate_fn=collate_fn)
+    val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False, collate_fn=collate_fn)
+    test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False, collate_fn=collate_fn)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = GPT2WithDurationClassifier().to(device)
@@ -88,7 +88,7 @@ def main():
     min_loss = 99.99
     no_improvement_epoch = 0
 
-    for epoch in range(50):
+    for epoch in range(3):
         train_loss = train(model, train_loader, optimizer, device)
         val_metrics = evaluate(model, val_loader, device)
 
@@ -105,7 +105,7 @@ def main():
     test_metrics = evaluate(model, test_loader, device)
     print(f"  Test Loss: {test_metrics['loss']:.4f} | Val Acc: {test_metrics['accuracy']:.4f} | F1: {test_metrics['f1']:.4f}")
 
-def test():
+def _test():
     filepath = "sample.tsv"
     df = load_data(filepath)
     examples = extract_examples(df)
@@ -134,5 +134,5 @@ def test():
         f"  Initial Loss: {test_metrics['loss']:.4f} | Acc: {test_metrics['accuracy']:.4f} | F1: {test_metrics['f1']:.4f}")
 
 if __name__ == "__main__":
-    # main()
-    test()
+    main()
+    # _test()

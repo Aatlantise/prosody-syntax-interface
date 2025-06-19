@@ -11,4 +11,4 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python reverse/run.py >> reverse.log
+python reverse/run.py >> reverse_short.log
