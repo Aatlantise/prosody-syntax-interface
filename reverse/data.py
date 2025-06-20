@@ -42,9 +42,12 @@ def extract_examples(df):
 
     # Flatten into list of examples
     examples = []
+    duration_over_1 = 0
     for i in range(len(current_context)):
         text_context = " ".join(tok["token"] for tok in current_context[:i+1])
         duration = current_context[i]["end"] - current_context[i]["start"]
+        if duration > 1:
+            duration_over_1 += 1
         label = 0
         if "E-NP" in current_context[i]["label"]:
             label += 1
@@ -55,10 +58,11 @@ def extract_examples(df):
             "duration": duration,
             "label": label
         })
-    return examples
+    return examples, duration_over_1
 
 def get_libritts_data():
     def get_data(split):
+        over_1s = 0
         examples = []
         split_path = f"/home/jm3743/data/LibriTTSLabelNPVP/lab/word/{split}/"
         for book in tqdm(os.listdir(split_path)):
@@ -68,7 +72,9 @@ def get_libritts_data():
                 for sentence in os.listdir(chapter_path):
                     sent_path = f"{chapter_path}/{sentence}"
                     df = load_data(sent_path)
-                    examples += extract_examples(df)
+                    ex, over_1 = extract_examples(df)
+                    examples += ex
+        # print(f"over_1s: {over_1s}")
         return examples
 
     train = get_data("train-clean-100")
@@ -99,8 +105,14 @@ def collate_fn(batch):
     labels = torch.stack([x["label"] for x in batch])
     return texts, durations, labels
 
-if __name__ == "__main__":
+def _test():
     filepath = "sample.tsv"
     df = load_data(filepath)
     examples = extract_examples(df)
     print(json.dumps(examples, indent=4))
+
+if __name__ == "__main__":
+    train_examples, val_examples, test_examples = get_libritts_data()
+    train_dataset = PhraseBoundaryDataset(train_examples)
+    val_dataset = PhraseBoundaryDataset(val_examples)
+    test_dataset = PhraseBoundaryDataset(test_examples)

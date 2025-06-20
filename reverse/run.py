@@ -47,7 +47,7 @@ def evaluate(model, dataloader, device):
     with torch.no_grad():
         for texts, durations, labels in tqdm(dataloader):
             durations = durations.to(device)
-            labels = labels.to(device)
+            labels = labels.to(device).long()
 
             logits = model(texts, durations)
             loss = cross_entropy(logits, labels)
@@ -94,7 +94,9 @@ def main(args):
     min_loss = 99.99
     no_improvement_epoch = 0
 
-    for epoch in range(3):
+    max_epoch = 30
+
+    for epoch in range(max_epoch):
         train_loss = train(args, model, train_loader, optimizer, device)
         val_metrics = evaluate(model, val_loader, device)
 

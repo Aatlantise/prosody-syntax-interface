@@ -80,5 +80,5 @@ if __name__ == '__main__':
     batch_durations = torch.tensor(d).unsqueeze(1).to(device)  # shape: (len, 1)
 
     logits = model(batch_texts, batch_durations)
-    probs = torch.sigmoid(logits)  # Convert to probabilities
-    print(probs)
+    preds = torch.argmax(logits, dim=1).cpu()
+    print(preds)
