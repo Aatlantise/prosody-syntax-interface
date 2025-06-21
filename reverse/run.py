@@ -10,7 +10,7 @@ from torch.nn.functional import cross_entropy
 from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
-from data import PhraseBoundaryDataset, collate_fn, get_libritts_data, load_data, extract_examples
+from data import PhraseBoundaryDataset, collate_fn, get_libritts_data, load_data, extract_examples_from_sent
 from model import GPT2WithDurationClassifier, GPT2Classifier
 
 
@@ -85,11 +85,11 @@ def main(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if args.use_duration_info:
-        model = GPT2WithDurationClassifier().to(device)
+        model = GPT2WithDurationClassifier(duration_emb_dim=args.prosody_emb_size).to(device)
     else:
         model = GPT2Classifier().to(device)
 
-    optimizer = AdamW(model.parameters(), lr=5e-5)
+    optimizer = AdamW(model.parameters(), lr=2e-5)
 
     min_loss = 99.99
     no_improvement_epoch = 0
@@ -116,11 +116,11 @@ def main(args):
 def _test(args):
     filepath = "sample.tsv"
     df = load_data(filepath)
-    examples = extract_examples(df)
+    examples = extract_examples_from_sent(df)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if args.use_duration_info:
-        model = GPT2WithDurationClassifier().to(device)
+        model = GPT2WithDurationClassifier(args.prosody_emb_size).to(device)
     else:
         model = GPT2Classifier().to(device)
 
@@ -148,6 +148,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--use_duration_info", default=False, action="store_true")
     parser.add_argument("--debug", default=False, action="store_true")
+    parser.add_argument("--prosody_emb_size", default=16, type=int)
     args = parser.parse_args()
 
     main(args)

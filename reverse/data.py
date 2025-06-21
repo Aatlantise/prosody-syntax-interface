@@ -10,7 +10,7 @@ def load_data(filepath):
     df = pd.read_csv(filepath, sep='\t', names=["start", "end", "token"], keep_default_na=False, header=0)
     return df
 
-def extract_examples(df):
+def extract_examples_from_sent(df):
     current_context = []
     open_tags = []
 
@@ -42,12 +42,11 @@ def extract_examples(df):
 
     # Flatten into list of examples
     examples = []
-    duration_over_1 = 0
+    max_duration = 0.
     for i in range(len(current_context)):
         text_context = " ".join(tok["token"] for tok in current_context[:i+1])
         duration = current_context[i]["end"] - current_context[i]["start"]
-        if duration > 1:
-            duration_over_1 += 1
+        max_duration = max(max_duration, duration)
         label = 0
         if "E-NP" in current_context[i]["label"]:
             label += 1
@@ -58,11 +57,15 @@ def extract_examples(df):
             "duration": duration,
             "label": label
         })
-    return examples, duration_over_1
+
+    # last example is the end of the sentence (</S>)
+    if examples:
+        examples[-1]["label"] = examples[-1]["label"] + 1
+    return examples, max_duration
 
 def get_libritts_data():
     def get_data(split):
-        over_1s = 0
+        max_duration = 0.
         examples = []
         split_path = f"/home/jm3743/data/LibriTTSLabelNPVP/lab/word/{split}/"
         for book in tqdm(os.listdir(split_path)):
@@ -72,9 +75,10 @@ def get_libritts_data():
                 for sentence in os.listdir(chapter_path):
                     sent_path = f"{chapter_path}/{sentence}"
                     df = load_data(sent_path)
-                    ex, over_1 = extract_examples(df)
+                    ex, local_max = extract_examples_from_sent(df)
                     examples += ex
-        # print(f"over_1s: {over_1s}")
+                    max_duration = max(max_duration, local_max)
+        print(f"Maximum duration: {max_duration}")
         return examples
 
     train = get_data("train-clean-100")
@@ -108,11 +112,14 @@ def collate_fn(batch):
 def _test():
     filepath = "sample.tsv"
     df = load_data(filepath)
-    examples = extract_examples(df)
+    examples = extract_examples_from_sent(df)
     print(json.dumps(examples, indent=4))
 
-if __name__ == "__main__":
+def main():
     train_examples, val_examples, test_examples = get_libritts_data()
-    train_dataset = PhraseBoundaryDataset(train_examples)
-    val_dataset = PhraseBoundaryDataset(val_examples)
-    test_dataset = PhraseBoundaryDataset(test_examples)
+    _ = PhraseBoundaryDataset(train_examples)
+    _ = PhraseBoundaryDataset(val_examples)
+    _ = PhraseBoundaryDataset(test_examples)
+
+if __name__ == "__main__":
+    main()

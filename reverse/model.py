@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from transformers import GPT2Tokenizer, GPT2Model
-from data import load_data, extract_examples
+from data import load_data, extract_examples_from_sent
 
 
 class GPT2Classifier(nn.Module):
@@ -15,7 +15,7 @@ class GPT2Classifier(nn.Module):
         self.classifier = nn.Sequential(
             nn.Linear(self.gpt2_hidden_dim, 128),
             nn.ReLU(),
-            nn.Linear(128, 3)  # 3 classes
+            nn.Linear(128, 4)  # 3 classes
         )
 
     def _get_hidden(self, texts):
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     # Example input
     sentence = ["art", "with", "the", "recklessness"]
-    d = [0.35, 0.25, 0.22, 0.75]
+    d = [2.27, 1.5, 1.33, 0.35]
 
     batch_texts = [" ".join(sentence[:i + 1]) for i in range(len(sentence))]
     batch_durations = torch.tensor(d).unsqueeze(1).to(device)  # shape: (len, 1)
