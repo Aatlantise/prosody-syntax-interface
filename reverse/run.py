@@ -124,7 +124,7 @@ def _test(args):
     else:
         model = GPT2Classifier().to(device)
 
-    optimizer = AdamW(model.parameters(), lr=5e-5)
+    optimizer = AdamW(model.parameters(), lr=2e-5)
 
     l, j, = [int(len(examples) * 0.8), int(len(examples) * 0.9)]
     train_ex, val_ex, test_ex = examples[:l], examples[l:j], examples[j:]

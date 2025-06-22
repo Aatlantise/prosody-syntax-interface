@@ -51,7 +51,7 @@ class GPT2WithDurationClassifier(GPT2Classifier):
         self.classifier = nn.Sequential(
             nn.Linear(self.gpt2_hidden_dim + duration_emb_dim, 128),
             nn.ReLU(),
-            nn.Linear(128, 3)  # 3 classes
+            nn.Linear(128, 4)  # 3 classes
         )
 
     def forward(self, texts, durations=None):
