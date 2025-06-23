@@ -78,7 +78,7 @@ def get_libritts_data():
                     ex, local_max = extract_examples_from_sent(df)
                     examples += ex
                     max_duration = max(max_duration, local_max)
-        print(f"Maximum duration: {max_duration}")
+        # print(f"Maximum duration: {max_duration}")
         return examples
 
     train = get_data("train-clean-100")
@@ -98,7 +98,8 @@ class PhraseBoundaryDataset(Dataset):
         item = self.examples[idx]
         return {
             "text": item["text"],
-            "duration": torch.tensor([item["duration"]], dtype=torch.float),
+            # normalize to prevent tensor of zeros
+            "duration": torch.tensor([item["duration"] / 2.5], dtype=torch.float),
             #todo: add pause data
             "label": torch.tensor(item["label"], dtype=torch.float)
         }

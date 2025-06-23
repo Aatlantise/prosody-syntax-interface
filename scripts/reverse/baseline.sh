@@ -11,4 +11,6 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python reverse/run.py >> baseline.log
+python reverse/run.py --seed 1 >> baseline-1.log
+python reverse/run.py --seed 2 >> baseline-2.log
+python reverse/run.py --seed 3 >> baseline-3.log

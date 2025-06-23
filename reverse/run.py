@@ -1,6 +1,8 @@
 import os
 import pickle
 import argparse
+import random
+import numpy as np
 
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -12,6 +14,15 @@ from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 from data import PhraseBoundaryDataset, collate_fn, get_libritts_data, load_data, extract_examples_from_sent
 from model import GPT2WithDurationClassifier, GPT2Classifier
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 def train(args, model, dataloader, optimizer, device):
@@ -89,7 +100,11 @@ def main(args):
     else:
         model = GPT2Classifier().to(device)
 
-    optimizer = AdamW(model.parameters(), lr=2e-5)
+    optimizer = AdamW(model.parameters(),
+                      lr=5e-5,
+                      betas=(0.9, 0.95),
+                      weight_decay=1e-5
+                      )
 
     min_loss = 99.99
     no_improvement_epoch = 0
@@ -103,6 +118,11 @@ def main(args):
         print(f"Epoch {epoch+1}")
         print(f"  Train Loss: {train_loss:.4f}")
         print(f"  Val Loss: {val_metrics['loss']:.4f} | Val Acc: {val_metrics['accuracy']:.4f} | F1: {val_metrics['f1']:.4f}")
+
+        test_metrics = evaluate(model, test_loader, device)
+        print(
+            f"  Test Loss: {test_metrics['loss']:.4f} | Test Acc: {test_metrics['accuracy']:.4f} | F1: {test_metrics['f1']:.4f}")
+
         if min_loss > val_metrics["loss"]:
             min_loss = val_metrics["loss"]
         else:
@@ -110,8 +130,6 @@ def main(args):
             if no_improvement_epoch > 2:
                 break
 
-    test_metrics = evaluate(model, test_loader, device)
-    print(f"  Test Loss: {test_metrics['loss']:.4f} | Val Acc: {test_metrics['accuracy']:.4f} | F1: {test_metrics['f1']:.4f}")
 
 def _test(args):
     filepath = "sample.tsv"
@@ -149,7 +167,10 @@ if __name__ == "__main__":
     parser.add_argument("--use_duration_info", default=False, action="store_true")
     parser.add_argument("--debug", default=False, action="store_true")
     parser.add_argument("--prosody_emb_size", default=16, type=int)
+    parser.add_argument("--seed", default=42, type=int)
     args = parser.parse_args()
+    print(args)
 
+    set_seed(args.seed)
     main(args)
     # _test(args)
