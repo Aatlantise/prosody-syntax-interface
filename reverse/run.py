@@ -13,7 +13,7 @@ from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 from data import PhraseBoundaryDataset, collate_fn, get_libritts_data, load_data, extract_examples_from_sent
-from model import GPT2WithDurationClassifier, GPT2Classifier
+from model import GPT2WithProsodyClassifier, GPT2Classifier
 
 
 def set_seed(seed):
@@ -31,12 +31,20 @@ def train(args, model, dataloader, optimizer, device):
     batch_loss = 0.0
 
     batches = tqdm(dataloader)
-    for texts, durations, labels in batches:
+    for texts, durations, pauses, labels in batches:
         if args.debug:
             batches.set_description(desc=f"Train loss: {batch_loss}")
-        durations, labels = durations.to(device), labels.to(device).long()
+        durations, pauses, labels = durations.to(device), pauses.to(device), labels.to(device).long()
 
-        logits = model(texts, durations)
+        prosody = torch.tensor([]).to(device)
+        if args.use_duration_info:
+            prosody = torch.cat([prosody, durations], dim=1)
+        if args.use_pause_info:
+            prosody = torch.cat([prosody, pauses], dim=1)
+        prosody = prosody if list(prosody.shape)[0] else None
+
+
+        logits = model(texts, prosody)
         loss = cross_entropy(logits, labels)
 
         optimizer.zero_grad()
@@ -85,7 +93,7 @@ def evaluate(model, dataloader, device):
 def main(args):
     train_examples, val_examples, test_examples = get_libritts_data()
 
-    # Assume examples is a list of {"text", "duration", "label"}
+    # Assume examples is a list of {"text", "duration", "pause", "label"}
     train_dataset = PhraseBoundaryDataset(train_examples)
     val_dataset = PhraseBoundaryDataset(val_examples)
     test_dataset = PhraseBoundaryDataset(test_examples)
@@ -95,8 +103,9 @@ def main(args):
     test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False, collate_fn=collate_fn)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if args.use_duration_info:
-        model = GPT2WithDurationClassifier(duration_emb_dim=args.prosody_emb_size).to(device)
+    if args.use_duration_info or args.use_pause_info:
+        num_prosodic_feats = int(args.use_duration_info) + int(args.use_pause_info)
+        model = GPT2WithProsodyClassifier(num_prosodic_feats, prosody_emb_dim=args.prosody_emb_size).to(device)
     else:
         model = GPT2Classifier().to(device)
 
@@ -134,11 +143,12 @@ def main(args):
 def _test(args):
     filepath = "sample.tsv"
     df = load_data(filepath)
-    examples = extract_examples_from_sent(df)
+    examples, _, _ = extract_examples_from_sent(df)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if args.use_duration_info:
-        model = GPT2WithDurationClassifier(args.prosody_emb_size).to(device)
+    if args.use_duration_info or args.use_pause_info:
+        num_prosodic_feats = int(args.use_duration_info) + int(args.use_pause_info)
+        model = GPT2WithProsodyClassifier(num_prosodic_feats, prosody_emb_dim=args.prosody_emb_size).to(device)
     else:
         model = GPT2Classifier().to(device)
 
@@ -165,6 +175,7 @@ def _test(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--use_duration_info", default=False, action="store_true")
+    parser.add_argument("--use_pause_info", default=False, action="store_true")
     parser.add_argument("--debug", default=False, action="store_true")
     parser.add_argument("--prosody_emb_size", default=16, type=int)
     parser.add_argument("--seed", default=42, type=int)
@@ -172,5 +183,7 @@ if __name__ == "__main__":
     print(args)
 
     set_seed(args.seed)
-    main(args)
-    # _test(args)
+    # main(args)
+    args.use_duration_info = True
+    args.use_pause_info = True
+    _test(args)
