@@ -24,6 +24,28 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+def declare_device_and_model():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if args.use_duration_info or args.use_pause_info:
+        num_prosodic_feats = int(args.use_duration_info) + int(args.use_pause_info)
+        model = GPT2WithProsodyClassifier(num_prosodic_feats, prosody_emb_dim=args.prosody_emb_size).to(device)
+    else:
+        model = GPT2Classifier().to(device)
+
+    return device, model
+
+def get_prosodic_features(durations, pauses, labels, device):
+    durations, pauses, labels = durations.to(device), pauses.to(device), labels.to(device).long()
+
+    prosody = torch.tensor([]).to(device)
+    if args.use_duration_info:
+        prosody = torch.cat([prosody, durations], dim=1)
+    if args.use_pause_info:
+        prosody = torch.cat([prosody, pauses], dim=1)
+    prosody = prosody if list(prosody.shape)[0] else None
+
+    return prosody, labels
+
 
 def train(args, model, dataloader, optimizer, device):
     model.train()
@@ -34,16 +56,8 @@ def train(args, model, dataloader, optimizer, device):
     for texts, durations, pauses, labels in batches:
         if args.debug:
             batches.set_description(desc=f"Train loss: {batch_loss}")
-        durations, pauses, labels = durations.to(device), pauses.to(device), labels.to(device).long()
 
-        prosody = torch.tensor([]).to(device)
-        if args.use_duration_info:
-            prosody = torch.cat([prosody, durations], dim=1)
-        if args.use_pause_info:
-            prosody = torch.cat([prosody, pauses], dim=1)
-        prosody = prosody if list(prosody.shape)[0] else None
-
-
+        prosody, labels = get_prosodic_features(durations, pauses, labels, device)
         logits = model(texts, prosody)
         loss = cross_entropy(logits, labels)
 
@@ -57,18 +71,17 @@ def train(args, model, dataloader, optimizer, device):
 
     return total_loss / len(dataloader)
 
-def evaluate(model, dataloader, device):
+def evaluate(args, model, dataloader, device):
     model.eval()
     all_preds = []
     all_labels = []
     total_loss = 0.0
 
     with torch.no_grad():
-        for texts, durations, labels in tqdm(dataloader):
-            durations = durations.to(device)
-            labels = labels.to(device).long()
+        for texts, durations, pauses, labels in tqdm(dataloader):
+            prosody, labels = get_prosodic_features(durations, pauses, labels, device)
 
-            logits = model(texts, durations)
+            logits = model(texts, prosody)
             loss = cross_entropy(logits, labels)
             total_loss += loss.item()
 
@@ -102,12 +115,7 @@ def main(args):
     val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False, collate_fn=collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False, collate_fn=collate_fn)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if args.use_duration_info or args.use_pause_info:
-        num_prosodic_feats = int(args.use_duration_info) + int(args.use_pause_info)
-        model = GPT2WithProsodyClassifier(num_prosodic_feats, prosody_emb_dim=args.prosody_emb_size).to(device)
-    else:
-        model = GPT2Classifier().to(device)
+    device, model = declare_device_and_model()
 
     optimizer = AdamW(model.parameters(),
                       lr=5e-5,
@@ -122,13 +130,13 @@ def main(args):
 
     for epoch in range(max_epoch):
         train_loss = train(args, model, train_loader, optimizer, device)
-        val_metrics = evaluate(model, val_loader, device)
+        val_metrics = evaluate(args, model, val_loader, device)
 
         print(f"Epoch {epoch+1}")
         print(f"  Train Loss: {train_loss:.4f}")
         print(f"  Val Loss: {val_metrics['loss']:.4f} | Val Acc: {val_metrics['accuracy']:.4f} | F1: {val_metrics['f1']:.4f}")
 
-        test_metrics = evaluate(model, test_loader, device)
+        test_metrics = evaluate(args, model, test_loader, device)
         print(
             f"  Test Loss: {test_metrics['loss']:.4f} | Test Acc: {test_metrics['accuracy']:.4f} | F1: {test_metrics['f1']:.4f}")
 
@@ -145,12 +153,7 @@ def _test(args):
     df = load_data(filepath)
     examples, _, _ = extract_examples_from_sent(df)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if args.use_duration_info or args.use_pause_info:
-        num_prosodic_feats = int(args.use_duration_info) + int(args.use_pause_info)
-        model = GPT2WithProsodyClassifier(num_prosodic_feats, prosody_emb_dim=args.prosody_emb_size).to(device)
-    else:
-        model = GPT2Classifier().to(device)
+    device, model = declare_device_and_model()
 
     optimizer = AdamW(model.parameters(), lr=2e-5)
 
@@ -162,13 +165,13 @@ def _test(args):
     test_loader = DataLoader(PhraseBoundaryDataset(test_ex), batch_size=8, shuffle=False, collate_fn=collate_fn)
 
     train_loss = train(args, model, train_loader, optimizer, device)
-    val_metrics = evaluate(model, val_loader, device)
+    val_metrics = evaluate(args, model, val_loader, device)
 
     print(f"Epoch 0")
     print(f"  Train Loss: {train_loss:.4f}")
     print(
         f"  Val Loss: {val_metrics['loss']:.4f} | Val Acc: {val_metrics['accuracy']:.4f} | F1: {val_metrics['f1']:.4f}")
-    test_metrics = evaluate(model, test_loader, device)
+    test_metrics = evaluate(args, model, test_loader, device)
     print(
         f"  Initial Loss: {test_metrics['loss']:.4f} | Acc: {test_metrics['accuracy']:.4f} | F1: {test_metrics['f1']:.4f}")
 
@@ -183,7 +186,7 @@ if __name__ == "__main__":
     print(args)
 
     set_seed(args.seed)
-    # main(args)
+
     args.use_duration_info = True
     args.use_pause_info = True
-    _test(args)
+    main(args)
