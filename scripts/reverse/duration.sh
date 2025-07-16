@@ -11,4 +11,6 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python reverse/run.py --use_duration_info >> duration.log
+python reverse/run.py --use_duration_info --seed 1 >> duration-1.log
+python reverse/run.py --use_duration_info --seed 2 >> duration-2.log
+python reverse/run.py --use_duration_info --seed 3 >> duration-3.log

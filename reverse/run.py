@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torch.optim import AdamW
-from torch.nn.functional import cross_entropy
+from torch.nn.functional import cross_entropy, softmax
 
 from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
@@ -47,6 +47,33 @@ def get_prosodic_features(durations, pauses, labels, device):
     return prosody, labels
 
 
+def continuous_cross_entropy(logits, labels):
+    """
+    Logits: size (batch_size, num_labels)
+    Labels: size (num_labels)
+
+    Instead of the usual cross entropy, we want to reward close-by predictions and
+    penalize far-off predictions, as we have a continuous label space in the number
+    of phrases that close.
+    """
+    # logits: size (batch_size, num_labels)
+    # labels: size (num_labels)
+
+    probs = softmax(logits, dim=-1)
+    sparse_labels = torch.tensor(
+        [[int(i==l) for i in range(4)] for l in labels],
+        device=labels.device)
+    manual_cross_ent = round(float(-1 * sum(sum(torch.log(probs) * sparse_labels)) / len(labels)), 3)
+    auto_cross_ent = round(float(cross_entropy(logits, labels)), 3)
+    assert auto_cross_ent == manual_cross_ent, f"{auto_cross_ent} != {manual_cross_ent}"
+    weights = torch.tensor(
+        [[abs(i - l) for i in range(4)] for l in labels],
+    device=labels.device)
+    weighted_loss = -1 * sum(sum(torch.log(probs) * weights)) / len(labels)
+
+    return weighted_loss
+
+
 def train(args, model, dataloader, optimizer, device):
     model.train()
     total_loss = 0.0
@@ -59,7 +86,7 @@ def train(args, model, dataloader, optimizer, device):
 
         prosody, labels = get_prosodic_features(durations, pauses, labels, device)
         logits = model(texts, prosody)
-        loss = cross_entropy(logits, labels)
+        loss = continuous_cross_entropy(logits, labels)
 
         optimizer.zero_grad()
         loss.backward()
@@ -186,7 +213,4 @@ if __name__ == "__main__":
     print(args)
 
     set_seed(args.seed)
-
-    args.use_duration_info = True
-    args.use_pause_info = True
     main(args)
