@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 def load_data(filepath):
-    df = pd.read_csv(filepath, sep='\t', names=["start", "end", "token"], keep_default_na=False, header=0)
+    df = pd.read_csv(filepath, sep='\t', names=["start", "end", "token"], keep_default_na=False)
     return df
 
 def extract_examples_from_sent(df):
@@ -31,13 +31,15 @@ def extract_examples_from_sent(df):
                 tag = token.strip('<>')
                 open_tags.append(tag)
         elif not token: # do not consider pause at this time
-            continue
+            if current_context:
+                current_context[-1]["pause"] = row['end'] - row['start']
         else:
             current_context.append({
                 "start": float(start),
                 "end": float(end),
                 "token": token,
-                "label": []  # May include "E-NP" or "E-VP"
+                "label": [],  # May include "E-NP" or "E-VP"
+                "pause": 0. # to be corrected in the following pause token when applicable
             })
 
     # Flatten into list of examples
@@ -47,8 +49,7 @@ def extract_examples_from_sent(df):
     for i in range(len(current_context)):
         text_context = " ".join(tok["token"] for tok in current_context[:i+1])
         duration = current_context[i]["end"] - current_context[i]["start"]
-        # should N/A and 0 pause be encoded differently?
-        pause = 0 if i >= len(current_context) - 1 else current_context[i+1]["start"] - current_context[i]["end"]
+        pause = current_context[i]["pause"]
         max_duration = max(max_duration, duration)
         max_pause = max(max_pause, pause)
         label = 0
