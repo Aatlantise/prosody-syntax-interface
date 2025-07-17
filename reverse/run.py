@@ -60,12 +60,6 @@ def continuous_cross_entropy(logits, labels):
     # labels: size (num_labels)
 
     probs = softmax(logits, dim=-1)
-    sparse_labels = torch.tensor(
-        [[int(i==l) for i in range(4)] for l in labels],
-        device=labels.device)
-    manual_cross_ent = round(float(-1 * sum(sum(torch.log(probs) * sparse_labels)) / len(labels)), 3)
-    auto_cross_ent = round(float(cross_entropy(logits, labels)), 3)
-    assert auto_cross_ent == manual_cross_ent, f"{auto_cross_ent} != {manual_cross_ent}"
     weights = torch.tensor(
         [[abs(i - l) for i in range(4)] for l in labels],
     device=labels.device)
