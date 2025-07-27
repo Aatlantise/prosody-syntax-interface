@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torch.optim import AdamW
 from torch.nn.functional import cross_entropy, softmax
+from torch.nn import BCEWithLogitsLoss
 
 from tqdm import tqdm
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
@@ -28,7 +29,7 @@ def declare_device_and_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if args.use_duration_info or args.use_pause_info:
         num_prosodic_feats = int(args.use_duration_info) + int(args.use_pause_info)
-        model = GPT2WithProsodyClassifier(num_prosodic_feats, prosody_emb_dim=args.prosody_emb_size).to(device)
+        model = GPT2WithProsodyClassifier(num_prosodic_feats).to(device)
     else:
         model = GPT2Classifier().to(device)
 
@@ -72,6 +73,7 @@ def train(args, model, dataloader, optimizer, device):
     model.train()
     total_loss = 0.0
     batch_loss = 0.0
+    criterion = BCEWithLogitsLoss()
 
     batches = tqdm(dataloader)
     for texts, durations, pauses, labels in batches:
@@ -80,7 +82,7 @@ def train(args, model, dataloader, optimizer, device):
 
         prosody, labels = get_prosodic_features(durations, pauses, labels, device)
         logits = model(texts, prosody)
-        loss = continuous_cross_entropy(logits, labels)
+        loss = criterion(logits, labels.float())
 
         optimizer.zero_grad()
         loss.backward()
@@ -97,16 +99,19 @@ def evaluate(args, model, dataloader, device):
     all_preds = []
     all_labels = []
     total_loss = 0.0
+    criterion = BCEWithLogitsLoss()
 
     with torch.no_grad():
         for texts, durations, pauses, labels in tqdm(dataloader):
             prosody, labels = get_prosodic_features(durations, pauses, labels, device)
 
             logits = model(texts, prosody)
-            loss = cross_entropy(logits, labels)
+            loss = criterion(logits, labels.float())
             total_loss += loss.item()
 
-            preds = torch.argmax(logits, dim=1).cpu()
+            probs = torch.sigmoid(logits)
+            threshold = 0.5
+            preds = (probs > threshold).int()
             labels = labels.long()
 
             all_preds.extend(preds.tolist())
@@ -201,10 +206,12 @@ if __name__ == "__main__":
     parser.add_argument("--use_duration_info", default=False, action="store_true")
     parser.add_argument("--use_pause_info", default=False, action="store_true")
     parser.add_argument("--debug", default=False, action="store_true")
-    parser.add_argument("--prosody_emb_size", default=16, type=int)
     parser.add_argument("--seed", default=42, type=int)
     args = parser.parse_args()
     print(args)
+
+    args.use_duration_info = True
+    args.use_pause_info = True
 
     set_seed(args.seed)
     main(args)

@@ -52,21 +52,21 @@ def extract_examples_from_sent(df):
         pause = current_context[i]["pause"]
         max_duration = max(max_duration, duration)
         max_pause = max(max_pause, pause)
-        label = 0
+        labels = [0, 0, 0] # 3-dimensional vector representing NP, VP, S ending
         if "E-NP" in current_context[i]["label"]:
-            label += 1
+            labels[0] = 1
         if "E-VP" in current_context[i]["label"]:
-            label += 1
+            labels[1] = 1
         examples.append({
             "text": text_context,
             "duration": duration,
-            "label": label,
+            "label": labels,
             "pause": pause
         })
 
     # last example is the end of the sentence (</S>)
     if examples:
-        examples[-1]["label"] = examples[-1]["label"] + 1
+        examples[-1]["label"][2] = 1
     return examples, max_duration, max_pause
 
 def get_libritts_data():
