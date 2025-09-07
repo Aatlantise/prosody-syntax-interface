@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name="duration-pause"
+#SBATCH --job-name="spi-d-p"
 #SBATCH --output="%x.o%j"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

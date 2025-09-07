@@ -210,8 +210,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
-    args.use_duration_info = True
-    args.use_pause_info = True
-
     set_seed(args.seed)
     main(args)
