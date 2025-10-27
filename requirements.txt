@@ -9,6 +9,11 @@ hydra-core==1.3.2
 hydra-colorlog==1.2.0
 hydra-optuna-sweeper==1.2.0
 
+# --------- constituency modeling -------- #
+tokenizers
+sentencepiece
+tqdm
+
 # --------- loggers --------- #
 # wandb
 # neptune-client
