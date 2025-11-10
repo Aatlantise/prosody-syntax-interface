@@ -172,18 +172,23 @@ def main(args):
     if tokenizer.pad_token is None:
         tokenizer.add_special_tokens({"pad_token": "<pad>"})
 
-    model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name_or_path)
-    # resize token embeddings if we added pad token
-    model.resize_token_embeddings(len(tokenizer))
-
     # Preprocess datasets (tokenize)
     print("Tokenizing...")
     preprocess_fn = lambda examples: preprocess(tokenizer, examples, args.max_source_length, args.max_target_length)
     tokenized_train = train_ds.map(preprocess_fn, batched=True, remove_columns=train_ds.column_names)
     tokenized_eval = eval_ds.map(preprocess_fn, batched=True, remove_columns=eval_ds.column_names) if eval_ds is not None else None
 
+    print(f"Train set has {len(tokenized_train)} sentences"
+          f" with an average of {sum([len([i for i in k if i != -100]) for k in tokenized_train['labels']]) / len(tokenized_train)} tokens.")
+    print(f"Eval set has {len(tokenized_eval)} sentences"
+          f" with an average of {sum([len([i for i in k if i != -100]) for k in tokenized_eval['labels']]) / len(tokenized_eval)} tokens.")
+
     # Data collator
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model, label_pad_token_id=-100, pad_to_multiple_of=None)
+
+    model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name_or_path)
+    # resize token embeddings if we added pad token
+    model.resize_token_embeddings(len(tokenizer))
 
     # Training arguments
     training_args = Seq2SeqTrainingArguments(
@@ -203,6 +208,9 @@ def main(args):
         warmup_steps=args.warmup_steps,
         remove_unused_columns=False,
         push_to_hub=False,
+        metric_for_best_model="eval_loss",  # or any other metric you're computing
+        greater_is_better=False,
+        report_to=["tensorboard"]
     )
 
     trainer = Seq2SeqTrainer(
@@ -265,7 +273,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_target_length", type=int, default=256)
     parser.add_argument("--per_device_train_batch_size", type=int, default=8)
     parser.add_argument("--per_device_eval_batch_size", type=int, default=8)
-    parser.add_argument("--epochs", type=int, default=5)
+    parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--validation_split", type=float, default=0.02)
     parser.add_argument("--eval_steps", type=int, default=500)
     parser.add_argument("--logging_steps", type=int, default=500)

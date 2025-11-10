@@ -110,13 +110,7 @@ def main(args):
     outdir.mkdir(parents=True, exist_ok=True)
 
     # 1) Build or load tokenizer
-    tokenizer_dir = Path("tokenizers/gpt2_from_scratch")
-    if not tokenizer_dir.exists():
-        print("Training tokenizer...")
-        hf_tokenizer = get_tokenizer()
-    else:
-        print("Loading tokenizer from", tokenizer_dir)
-        hf_tokenizer = GPT2TokenizerFast.from_pretrained(str(tokenizer_dir))
+    hf_tokenizer = get_tokenizer()
 
     # 2) Prepare dataset
     print("Preparing dataset...")
@@ -127,6 +121,10 @@ def main(args):
     split = tokenized.train_test_split(test_size=args.validation_split, seed=42)
     train_ds = split["train"]
     eval_ds = split["test"]
+    print(f"Train set has {len(train_ds)} sentences with "
+          f"{sum([len(i) for i in train_ds['input_ids']]) / len(train_ds['input_ids'])} tokens per sentence")
+    print(f"Eval set has {len(eval_ds)} sentences with "
+          f"{sum([len(i) for i in eval_ds['input_ids']]) / len(eval_ds['input_ids'])} tokens per sentence")
 
     # 3) Build model (random init)
     print("Building model...")
@@ -152,6 +150,8 @@ def main(args):
         weight_decay=0.01,
         warmup_steps=500,
         fp16=args.fp16,
+        metric_for_best_model="eval_loss",  # or any other metric you're computing
+        greater_is_better=False,
         push_to_hub=False,
         report_to=["tensorboard"]
     )
@@ -183,7 +183,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--parses", type=str, default="data/constituency_corpus.json",
+    parser.add_argument("--parses", type=str, default="/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json",
                         help="Path to parses file (JSONL with 'parse' or plain text lines).")
     parser.add_argument("--outdir", type=str, default="outputs/parse_lm", help="Output directory.")
     parser.add_argument("--vocab_size", type=int, default=8000)
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_layer", type=int, default=8)
     parser.add_argument("--n_head", type=int, default=8)
     parser.add_argument("--n_embd", type=int, default=512)
-    parser.add_argument("--epochs", type=int, default=5)
+    parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--train_batch_size", type=int, default=8)
     parser.add_argument("--eval_batch_size", type=int, default=8)
     parser.add_argument("--validation_split", type=float, default=0.02)
