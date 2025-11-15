@@ -105,10 +105,7 @@ def compute_cross_entropy_per_sequence(model, tokenized_dataset, tokenizer, devi
     avg_bits_per_token = avg_nats_per_token / math.log(2)
     return avg_nats_per_token, avg_bits_per_token
 
-def main(args):
-    outdir = Path(args.outdir)
-    outdir.mkdir(parents=True, exist_ok=True)
-
+def load_data_and_model():
     # 1) Build or load tokenizer
     hf_tokenizer = get_tokenizer()
 
@@ -125,6 +122,14 @@ def main(args):
           f"{sum([len(i) for i in train_ds['input_ids']]) / len(train_ds['input_ids'])} tokens per sentence")
     print(f"Eval set has {len(eval_ds)} sentences with "
           f"{sum([len(i) for i in eval_ds['input_ids']]) / len(eval_ds['input_ids'])} tokens per sentence")
+
+    return hf_tokenizer, train_ds, eval_ds
+
+def main(args):
+    outdir = Path(args.outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    hf_tokenizer, train_ds, eval_ds = load_data_and_model()
 
     # 3) Build model (random init)
     print("Building model...")

@@ -6,10 +6,55 @@ import stanza
 import re
 from transformers import GPT2TokenizerFast, T5Tokenizer
 
+class ParseTokenizer:
+    """
+    A simple vocabulary lookup tokenizer with atomic tokens:
+    - POS tags
+    - Phrase labels
+    - "(" and ")"
+    - <pad>, <bos>, <eos>
+    """
+
+    def __init__(self, vocab_list, special_tokens):
+        # Build vocab dicts
+        self.special_tokens = special_tokens
+
+        self.vocab = {tok: i for i, tok in enumerate(vocab_list)}
+        self.inv_vocab = {i: tok for tok, i in self.vocab.items()}
+
+    def encode(self, text):
+        """Tokenizes a linearized parse without using whitespace."""
+        tokens = re.findall(r'\(|\)|[^\s()]+', text)
+        return [self.vocab[tok] for tok in tokens]
+
+    def decode(self, token_ids):
+        tokens = [self.inv_vocab[i] for i in token_ids]
+        return " ".join(tokens)
+
+    def save(self, path):
+        os.makedirs(path, exist_ok=True)
+        with open(os.path.join(path, "vocab.json"), "w") as f:
+            json.dump(self.vocab, f, indent=2)
+
+    def save_pretrained(self, path):
+        self.save(path)
+
+    @classmethod
+    def load(cls, path):
+        with open(os.path.join(path, "vocab.json")) as f:
+            vocab = json.load(f)
+        inv = {i: tok for tok, i in vocab.items()}
+        special_tokens = {tokid: tok for tok, tokid in vocab.items()
+                          if tok in {"<pad>", "<bos>", "<eos>"}}
+        tokenizer = cls([], special_tokens)
+        tokenizer.vocab = vocab
+        tokenizer.inv_vocab = inv
+        return tokenizer
+
+
 class TokenizerBuilder:
-    def __init__(self, model_name, scratch=True, filename="/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json"):
+    def __init__(self, model_name, filename="/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json"):
         self.model_name = model_name
-        self.scratch = scratch
         self.filename = filename
 
         # POS tags (PTB set) and brackets as regular tokens
@@ -61,20 +106,19 @@ class TokenizerBuilder:
 
     def build_tokenizer(self):
         if 'gpt' in self.model_name:
-            tokenizer = GPT2TokenizerFast.from_pretrained(self.model_name)
+            tokenizer = ParseTokenizer(self.all_tokens, self.special_tokens)
         elif 't5' in self.model_name:
                 tokenizer = T5Tokenizer.from_pretrained(self.model_name)
+                # Add regular tokens (POS, phrase labels, parentheses)
+                tokenizer.add_tokens(self.all_tokens)
+
+                # Add special tokens
+                tokenizer.add_special_tokens(self.special_tokens)
         else:
             raise ValueError(f"{self.model_name} is not supported.")
 
-        # Add regular tokens (POS, phrase labels, parentheses)
-        tokenizer.add_tokens(self.all_tokens)
-
-        # Add special tokens
-        tokenizer.add_special_tokens(self.special_tokens)
-
         # Save tokenizer
-        tokenizer_name = f"tokenizers/{self.model_name}_from_scratch" if self.scratch else f"tokenizers/{self.model_name}"
+        tokenizer_name = f"tokenizers/{self.model_name}"
         tokenizer.save_pretrained(tokenizer_name)
 
         return tokenizer
@@ -84,9 +128,9 @@ class TokenizerBuilder:
 class CorpusBuilder:
     def __init__(self):
         # --- CONFIG ---
-        self.root_dir = os.path.expanduser('~/data/LibriTTS')
+        self.root_dir = os.path.expanduser('/home/jm3743/data/LibriTTS')
         self.splits = ['train-clean-100', 'dev-clean', 'test-clean']
-        self.output_path = os.path.expanduser('data/constituency_corpus.json')
+        self.output_path = os.path.expanduser('/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json')
         self.batch_size = 64  # tune based on GPU memory and sentence length
 
         # --- SETUP ---
@@ -168,5 +212,9 @@ class CorpusBuilder:
                         print(f"Error parsing batch: {e}")
 
 if __name__ == '__main__':
-    corpus = CorpusBuilder()
-    corpus()
+    t = TokenizerBuilder("gpt2")
+    tokenizer = t.tokenizer
+    print(tokenizer.encode("(ROOT(S(NP(DT)(NN))(VP(VBZ)(ADJP(JJ)))))"))
+
+    # corpus = CorpusBuilder()
+    # corpus()
