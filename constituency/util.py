@@ -6,50 +6,111 @@ import stanza
 import re
 from transformers import GPT2TokenizerFast, T5Tokenizer
 
-class ParseTokenizer:
-    """
-    A simple vocabulary lookup tokenizer with atomic tokens:
-    - POS tags
-    - Phrase labels
-    - "(" and ")"
-    - <pad>, <bos>, <eos>
-    """
 
+class ParseTokenizer:
     def __init__(self, vocab_list, special_tokens):
-        # Build vocab dicts
+
         self.special_tokens = special_tokens
 
-        self.vocab = {tok: i for i, tok in enumerate(vocab_list)}
-        self.inv_vocab = {i: tok for tok, i in self.vocab.items()}
+        self.token2id = {}
+        self.ids = []
+        self.id2token = {}
+
+        # 1. Add special tokens FIRST
+        for name, tok in self.special_tokens.items():
+            self.token2id[tok] = len(self.ids)
+            self.ids.append(tok)
+
+        # 2. Add regular tokens AFTER
+        for tok in vocab_list:
+            if tok not in self.token2id:
+                self.token2id[tok] = len(self.ids)
+                self.ids.append(tok)
+
+        # expose HF-like attributes
+        self.pad_token = self.special_tokens["pad_token"]
+        self.bos_token = self.special_tokens["bos_token"]
+        self.eos_token = self.special_tokens["eos_token"]
+        self.unk_token = self.special_tokens["unk_token"]
+
+        self.pad_token_id = self.token2id[self.pad_token]
+        self.bos_token_id = self.token2id[self.bos_token]
+        self.eos_token_id = self.token2id[self.eos_token]
+        self.unk_token_id = self.token2id[self.unk_token]
+
+        self.id2token = {i: tok for tok, i in self.token2id.items()}
+
+    def tokenize(self, text):
+        return re.findall(r'\(|\)|[^\s()]+', text)
 
     def encode(self, text):
-        """Tokenizes a linearized parse without using whitespace."""
-        tokens = re.findall(r'\(|\)|[^\s()]+', text)
-        return [self.vocab[tok] for tok in tokens]
+        # no <unk> should exist, though
+        return [self.token2id.get(tok, self.token2id["<unk>"]) for tok in self.tokenize(text)]
 
-    def decode(self, token_ids):
-        tokens = [self.inv_vocab[i] for i in token_ids]
-        return " ".join(tokens)
+    def decode(self, ids):
+        return " ".join(self.id2token[i] for i in ids)
 
-    def save(self, path):
-        os.makedirs(path, exist_ok=True)
-        with open(os.path.join(path, "vocab.json"), "w") as f:
-            json.dump(self.vocab, f, indent=2)
+    def batch_encode(self, texts):
+        return {"input_ids": [self.encode(t) for t in texts]}
 
-    def save_pretrained(self, path):
-        self.save(path)
+    def batch_decode(self, batch_ids):
+        return [self.decode(ids) for ids in batch_ids]
+
+    def pad(self, encoded_inputs, max_length=None, return_tensors=None, **kwargs):
+        """
+        HuggingFace-style pad() implementation.
+        encoded_inputs: list of dicts with "input_ids" and optionally "attention_mask"
+        """
+        # List[dict] case → HF always passes a list from DataCollator
+        if isinstance(encoded_inputs, list):
+            # Determine max sequence length
+            if max_length is None:
+                max_length = max(len(feat["input_ids"]) for feat in encoded_inputs)
+
+            padded_input_ids = []
+            padded_attention_masks = []
+
+            for feat in encoded_inputs:
+                ids = feat["input_ids"]
+                pad_len = max_length - len(ids)
+
+                padded_input_ids.append(ids + [self.pad_token_id] * pad_len)
+                padded_attention_masks.append([1] * len(ids) + [0] * pad_len)
+
+            result = {
+                "input_ids": padded_input_ids,
+                "attention_mask": padded_attention_masks
+            }
+
+        else:
+            raise ValueError("pad() expects a list of feature dicts.")
+
+        # Convert to tensors
+        if return_tensors == "pt":
+            import torch
+            result = {k: torch.tensor(v, dtype=torch.long) for k, v in result.items()}
+
+        return result
+
+    def save_pretrained(self, directory):
+        os.makedirs(directory, exist_ok=True)
+        with open(os.path.join(directory, "vocab.json"), "w") as f:
+            json.dump(self.token2id, f, indent=2)
 
     @classmethod
-    def load(cls, path):
-        with open(os.path.join(path, "vocab.json")) as f:
-            vocab = json.load(f)
-        inv = {i: tok for tok, i in vocab.items()}
-        special_tokens = {tokid: tok for tok, tokid in vocab.items()
-                          if tok in {"<pad>", "<bos>", "<eos>"}}
-        tokenizer = cls([], special_tokens)
-        tokenizer.vocab = vocab
-        tokenizer.inv_vocab = inv
-        return tokenizer
+    def from_pretrained(cls, directory):
+        with open(os.path.join(directory, "vocab.json")) as f:
+            token2id = json.load(f)
+        inv = {i: tok for tok, i in token2id.items()}
+        special = {k: v for k, v in token2id.items()
+                   if k in ["<pad>", "<bos>", "<eos>", "<unk>"]}
+        tok = cls([], special)
+        tok.token2id = token2id
+        tok.id2token = inv
+        return tok
+
+    def __len__(self):
+        return len(self.token2id)
 
 
 class TokenizerBuilder:
@@ -61,13 +122,14 @@ class TokenizerBuilder:
         self.pos_tags = ["CC", "CD", "DT", "EX", "FW", "IN", "JJ", "JJR", "JJS", "LS",
                          "MD", "NN", "NNS", "NNP", "NNPS", "PDT", "POS", "PRP", "PRP$",
                          "RB", "RBR", "RBS", "RP", "SYM", "TO", "UH", "VB", "VBD", "VBG",
-                         "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB", "#", "$", ".", ","]
+                         "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB", "#", "$", ".", ",", "''"]
 
         # True special tokens
         self.special_tokens = {
             "pad_token": "<pad>",
             "bos_token": "<bos>",
-            "eos_token": "<eos>"
+            "eos_token": "<eos>",
+            "unk_token": "<unk>",
         }
 
         # Collect POS and phrase labels from corpus
@@ -83,9 +145,11 @@ class TokenizerBuilder:
 
         print(f"Found {len(all_pos)} POS tags: {sorted(all_pos)}")
         print(f"Found {len(all_phrases)} phrase labels: {sorted(all_phrases)}")
+        manual_addn = ' '.join(["(", ")", "#", "$", ".", ",", "''"])
+        print(f"Adding manual additions: {manual_addn}")
 
         # Final token list (regular tokens include parentheses)
-        self.all_tokens = sorted(all_pos) + sorted(all_phrases) + ["(", ")"]
+        self.all_tokens = sorted(all_pos) + sorted(all_phrases) + ["(", ")", "#", "$", ".", ",", "''"]
 
         # Build the tokenizer
         self.tokenizer = self.build_tokenizer()
@@ -95,7 +159,7 @@ class TokenizerBuilder:
         pos_set = set()
         phrase_set = set()
         for t in tokens:
-            if t in ("(", ")"):
+            if t in ("(", ")", "#", "$", ".", ",", "''"):
                 continue
             elif t.isupper():  # heuristic: all PTB labels uppercase
                 if t in self.pos_tags:
@@ -211,10 +275,18 @@ class CorpusBuilder:
                     except Exception as e:
                         print(f"Error parsing batch: {e}")
 
-if __name__ == '__main__':
+
+def tokenizer_test():
     t = TokenizerBuilder("gpt2")
     tokenizer = t.tokenizer
-    print(tokenizer.encode("(ROOT(S(NP(DT)(NN))(VP(VBZ)(ADJP(JJ)))))"))
+    tokens = tokenizer.encode("(ROOT (S (SBAR IN (S (NP PRP) (VP VBP RB (VP VB (PRT RP)))))"
+                           " (NP PRP) (VP MD RB (VP VB (PRT RP))) , '' '' (VP VBZ (NP NNP) ,"
+                           " (ADVP RB . CC (S (NP PRP) (VP VBZ (VP VBN (PRT RP)))))) .))")
+    print([tokenizer.decode(k) for k in tokens["input_ids"]])
 
-    # corpus = CorpusBuilder()
-    # corpus()
+def corpus_test():
+    corpus = CorpusBuilder()
+    corpus()
+
+if __name__ == '__main__':
+    tokenizer_test()

@@ -55,7 +55,8 @@ def prepare_dataset(parses_path, hf_tokenizer, block_size=512):
 
     def tokenize_fn(examples):
         # keep special tokens and do not add BOS/EOS automatically (we want model to predict)
-        return hf_tokenizer(examples["text"], truncation=True, max_length=block_size, return_attention_mask=False)
+        # return hf_tokenizer(examples["text"], truncation=True, max_length=block_size, return_attention_mask=False)
+        return hf_tokenizer.batch_encode(examples["text"])
 
     tokenized = ds.map(tokenize_fn, batched=True, remove_columns=["text"])
     # group into blocks (not necessary if gen sequences are already sentence-per-example; keep one example per sequence)

@@ -25,10 +25,10 @@ from transformers import (
 import numpy as np
 import torch
 from tqdm import tqdm
-from util import TokenizerBuilder
+from constituency.util import TokenizerBuilder
 
 def get_tokenizer():
-    builder = TokenizerBuilder("t5-base", scratch=False)
+    builder = TokenizerBuilder("t5-base")
     tokenizer = builder.build_tokenizer()
     return tokenizer
 
@@ -183,12 +183,12 @@ def main(args):
     print(f"Eval set has {len(tokenized_eval)} sentences"
           f" with an average of {sum([len([i for i in k if i != -100]) for k in tokenized_eval['labels']]) / len(tokenized_eval)} tokens.")
 
-    # Data collator
-    data_collator = DataCollatorForSeq2Seq(tokenizer, model=model, label_pad_token_id=-100, pad_to_multiple_of=None)
-
     model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name_or_path)
     # resize token embeddings if we added pad token
     model.resize_token_embeddings(len(tokenizer))
+
+    # Data collator
+    data_collator = DataCollatorForSeq2Seq(tokenizer, model=model, label_pad_token_id=-100, pad_to_multiple_of=None)
 
     # Training arguments
     training_args = Seq2SeqTrainingArguments(
