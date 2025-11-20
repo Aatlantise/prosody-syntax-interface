@@ -16,21 +16,7 @@ def extract_examples_from_sent(df):
 
     for i, row in df.iterrows():
         start, end, token = row["start"], row["end"], row["token"]
-
-        if token.startswith('<') and token.endswith('>'):
-            if '/' in token:
-                tag = token.strip('</>')
-                if open_tags and open_tags[-1] == tag:
-                    # End tag: mark the previous real token as ending this phrase
-                    for j in range(len(current_context) - 1, -1, -1):
-                        if current_context[j]["token"]:
-                            current_context[j]["label"].append(f"E-{tag}")
-                            break
-                    open_tags.pop()
-            else:
-                tag = token.strip('<>')
-                open_tags.append(tag)
-        elif not token: # do not consider pause at this time
+        if not token: # do not consider pause at this time
             if current_context:
                 current_context[-1]["pause"] = row['end'] - row['start']
         else:
@@ -38,7 +24,6 @@ def extract_examples_from_sent(df):
                 "start": float(start),
                 "end": float(end),
                 "token": token,
-                "label": [],  # May include "E-NP" or "E-VP"
                 "pause": 0. # to be corrected in the following pause token when applicable
             })
 
@@ -47,26 +32,15 @@ def extract_examples_from_sent(df):
     max_duration = 0.
     max_pause = 0.
     for i in range(len(current_context)):
-        text_context = " ".join(tok["token"] for tok in current_context[:i+1])
         duration = current_context[i]["end"] - current_context[i]["start"]
         pause = current_context[i]["pause"]
         max_duration = max(max_duration, duration)
         max_pause = max(max_pause, pause)
-        labels = [0, 0, 0] # 3-dimensional vector representing NP, VP, S ending
-        if "E-NP" in current_context[i]["label"]:
-            labels[0] = 1
-        if "E-VP" in current_context[i]["label"]:
-            labels[1] = 1
         examples.append({
-            "text": text_context,
+            "text": current_context[i]["token"],
             "duration": duration,
-            "label": labels,
             "pause": pause
         })
-
-    # last example is the end of the sentence (</S>)
-    if examples:
-        examples[-1]["label"][2] = 1
     return examples, max_duration, max_pause
 
 def get_libritts_data():
@@ -74,16 +48,16 @@ def get_libritts_data():
         max_duration = 0.
         max_pause = 0.
         examples = []
-        split_path = f"/home/jm3743/data/LibriTTSLabelNPVP/lab/word/{split}/"
+        split_path = f"/home/jm3743/data/LibriTTSLabel/lab/word/{split}"
         for book in tqdm(os.listdir(split_path)):
-            book_path = f"{split_path}/{book}/"
+            book_path = f"{split_path}/{book}"
             for chapter in os.listdir(book_path):
-                chapter_path = f"{book_path}/{chapter}/"
+                chapter_path = f"{book_path}/{chapter}"
                 for sentence in os.listdir(chapter_path):
                     sent_path = f"{chapter_path}/{sentence}"
                     df = load_data(sent_path)
                     ex, local_max_dur, local_max_pau = extract_examples_from_sent(df)
-                    examples += ex
+                    examples.append(ex)
                     max_duration = max(max_duration, local_max_dur)
                     max_pause = max(max_pause, local_max_pau)
 
@@ -109,17 +83,15 @@ class PhraseBoundaryDataset(Dataset):
         return {
             "text": item["text"],
             # normalize to prevent tensor of zeros
-            "duration": torch.tensor([item["duration"] / 2.5], dtype=torch.float),
-            "pause": torch.tensor([item["pause"] / 6], dtype=torch.float),
-            "label": torch.tensor(item["label"], dtype=torch.float)
+            "duration": item["duration"],
+            "pause": item["pause"]
         }
 
 def collate_fn(batch):
     texts = [x["text"] for x in batch]
     durations = torch.stack([x["duration"] for x in batch])
     pauses = torch.stack([x["pause"] for x in batch])
-    labels = torch.stack([x["label"] for x in batch])
-    return texts, durations, pauses, labels
+    return texts, durations, pauses
 
 def _test():
     filepath = "sample.tsv"
@@ -136,4 +108,4 @@ def main():
     _ = PhraseBoundaryDataset(test_examples)
 
 if __name__ == "__main__":
-    _test()
+    main()
