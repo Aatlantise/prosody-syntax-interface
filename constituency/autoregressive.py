@@ -198,7 +198,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_layer", type=int, default=8)
     parser.add_argument("--n_head", type=int, default=8)
     parser.add_argument("--n_embd", type=int, default=512)
-    parser.add_argument("--epochs", type=int, default=30)
+    parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--train_batch_size", type=int, default=8)
     parser.add_argument("--eval_batch_size", type=int, default=8)
     parser.add_argument("--validation_split", type=float, default=0.02)

@@ -5,6 +5,7 @@ from tqdm import tqdm
 import stanza
 import re
 from transformers import GPT2TokenizerFast, T5Tokenizer
+from data import get_libritts_data
 
 
 class ParseTokenizer:
@@ -195,6 +196,7 @@ class CorpusBuilder:
         self.root_dir = os.path.expanduser('/home/jm3743/data/LibriTTS')
         self.splits = ['train-clean-100', 'dev-clean', 'test-clean']
         self.output_path = os.path.expanduser('/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json')
+        self.output_with_prosody_path = os.path.expanduser('/home/jm3743/prosody-syntax-interface/data/constituency_corpus_prosody.json')
         self.batch_size = 64  # tune based on GPU memory and sentence length
 
         # --- SETUP ---
@@ -226,6 +228,20 @@ class CorpusBuilder:
         # Internal node: recurse over children
         children_str = " ".join(self.strip_words(c) for c in tree.children)
         return f"({tree.label} {children_str})"
+
+    def add_prosody(self):
+        train_examples, val_examples, test_examples = get_libritts_data()
+        examples = train_examples + val_examples + test_examples
+        i = 0
+        with open(self.output_path, 'r', encoding='utf-8') as f:
+            with open(self.output_with_prosody_path, 'w', encoding='utf-8') as j:
+                for line in f:
+                    prosody_less = json.loads(line)
+                    prosody_less["pause"] = examples[i]["pause"]
+                    prosody_less["duration"] = examples[i]["duration"]
+                    j.write(json.dumps(prosody_less) + "\n")
+                    i += 1
+
 
     def __call__(self):
         with open(self.output_path, 'w', encoding='utf-8') as out_f:
@@ -286,7 +302,7 @@ def tokenizer_test():
 
 def corpus_test():
     corpus = CorpusBuilder()
-    corpus()
+    corpus.add_prosody()
 
 if __name__ == '__main__':
-    tokenizer_test()
+    corpus_test()
