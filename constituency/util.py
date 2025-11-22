@@ -5,7 +5,7 @@ from tqdm import tqdm
 import stanza
 import re
 from transformers import GPT2TokenizerFast, T5Tokenizer
-from data import get_libritts_data
+from data import load_data, extract_examples_from_sent
 
 
 class ParseTokenizer:
@@ -229,19 +229,6 @@ class CorpusBuilder:
         children_str = " ".join(self.strip_words(c) for c in tree.children)
         return f"({tree.label} {children_str})"
 
-    def add_prosody(self):
-        train_examples, val_examples, test_examples = get_libritts_data()
-        examples = train_examples + val_examples + test_examples
-        i = 0
-        with open(self.output_path, 'r', encoding='utf-8') as f:
-            with open(self.output_with_prosody_path, 'w', encoding='utf-8') as j:
-                for line in f:
-                    prosody_less = json.loads(line)
-                    prosody_less["pause"] = examples[i]["pause"]
-                    prosody_less["duration"] = examples[i]["duration"]
-                    j.write(json.dumps(prosody_less) + "\n")
-                    i += 1
-
 
     def __call__(self):
         with open(self.output_path, 'w', encoding='utf-8') as out_f:
@@ -258,11 +245,20 @@ class CorpusBuilder:
                             text = open(file_path, encoding='utf-8').read().strip()
                             if text:
                                 texts.append(text)
+
+                                prosody_path = file_path.replace("LibriTTS/", "LibriTTSLabel/lab/word/").replace("original.txt", "lab")
+                                prosody_df = load_data(prosody_path)
+                                prosody_dict, _, _ = extract_examples_from_sent(prosody_df)
+                                _1 = text
+                                _2 = ' '.join([w['text'] for w in prosody_dict])
                                 metadata.append({
                                     "split": split,
                                     "file": file_path,
-                                    "text": text
+                                    "text": text,
+                                    "pause": [w['pause'] for w in prosody_dict],
+                                    "duration": [w['duration'] for w in prosody_dict],
                                 })
+
                         except Exception as e:
                             print(f"Error reading {file_path}: {e}")
 
@@ -302,7 +298,7 @@ def tokenizer_test():
 
 def corpus_test():
     corpus = CorpusBuilder()
-    corpus.add_prosody()
+    corpus()
 
 if __name__ == '__main__':
     corpus_test()
