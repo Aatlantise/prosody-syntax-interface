@@ -273,7 +273,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_target_length", type=int, default=256)
     parser.add_argument("--per_device_train_batch_size", type=int, default=8)
     parser.add_argument("--per_device_eval_batch_size", type=int, default=8)
-    parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--validation_split", type=float, default=0.02)
     parser.add_argument("--eval_steps", type=int, default=500)
     parser.add_argument("--logging_steps", type=int, default=500)
