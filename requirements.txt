@@ -46,3 +46,4 @@ memory_profiler
 tensorboard
 tensorboardX
 wandb>=0.12.10
+accelerate>=0.26.0

@@ -5,7 +5,7 @@ from tqdm import tqdm
 import stanza
 import re
 from transformers import GPT2TokenizerFast, T5Tokenizer
-from data import load_data, extract_examples_from_sent
+from constituency.data import load_data, extract_examples_from_sent
 
 
 class ParseTokenizer:
