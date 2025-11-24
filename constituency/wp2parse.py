@@ -332,7 +332,7 @@ def main(args):
         per_device_train_batch_size=args.train_batch_size,
         per_device_eval_batch_size=args.eval_batch_size,
         predict_with_generate=False,
-        evaluation_strategy="steps" if args.eval_steps > 0 else "no",
+        eval_strategy="steps" if args.eval_steps > 0 else "no",
         eval_steps=args.eval_steps if args.eval_steps > 0 else None,
         logging_steps=args.logging_steps,
         save_steps=args.save_steps,
@@ -358,7 +358,6 @@ def main(args):
     print("Starting training...")
     trainer.train()
     trainer.save_model(str(outdir / "model_final"))
-    tokenizer.save_pretrained(str(outdir / "tokenizer_final"))
 
     # Evaluate: trainer.evaluate gives avg nats/token
     if tokenized_eval:
@@ -388,16 +387,16 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, default="/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json")
-    parser.add_argument("--outdir", type=str, default="outputs/exp4")
+    parser.add_argument("--outdir", type=str, default="outputs/wp2parse")
     parser.add_argument("--model_name_or_path", type=str, default="t5-base")
     parser.add_argument("--from_scratch", action="store_true",
                         help="If set, initialize model weights randomly from the config (no pretrained weights).")
     parser.add_argument("--max_source_length", type=int, default=256)
     parser.add_argument("--max_target_length", type=int, default=256)
-    parser.add_argument("--train_batch_size", type=int, default=8)
-    parser.add_argument("--eval_batch_size", type=int, default=8)
-    parser.add_argument("--nll_batch_size", type=int, default=8)
-    parser.add_argument("--epochs", type=int, default=30)
+    parser.add_argument("--train_batch_size", type=int, default=16)
+    parser.add_argument("--eval_batch_size", type=int, default=16)
+    parser.add_argument("--nll_batch_size", type=int, default=16)
+    parser.add_argument("--epochs", type=int, default=40)
     parser.add_argument("--validation_split", type=float, default=0.02)
     parser.add_argument("--eval_steps", type=int, default=500)
     parser.add_argument("--logging_steps", type=int, default=500)

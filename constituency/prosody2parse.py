@@ -68,6 +68,7 @@ class ProsodyT5(T5ForConditionalGeneration):
         attention_mask=None,
         pause=None,
         duration=None,
+        labels=None,
         **kwargs
     ):
         """
@@ -90,7 +91,7 @@ class ProsodyT5(T5ForConditionalGeneration):
             input_ids=None,     # don't let parent recompute input_embeds
             attention_mask=attention_mask,
             encoder_outputs=(encoder_outputs,),
-            labels=kwargs["labels"],
+            labels=labels
         )
 
 
@@ -244,13 +245,10 @@ def main(args):
     ds = Dataset.from_list(items)
 
     # Split
-    if args.validation_split > 0:
-        ds = ds.train_test_split(test_size=args.validation_split, seed=42)
-        train_ds = ds["train"]
-        eval_ds = ds["test"]
-    else:
-        train_ds = ds
-        eval_ds = None
+    ds = ds.train_test_split(test_size=args.validation_split, seed=42)
+    train_ds = ds["train"]
+    eval_ds = ds["test"]
+
 
     print("Loading tokenizer...")
     tokenizer = get_tokenizer()
@@ -281,10 +279,13 @@ def main(args):
         logging_steps=args.logging_steps,
         eval_steps=args.eval_steps,
         save_steps=args.save_steps,
+        save_total_limit=3,
         weight_decay=0.01,
         fp16=args.fp16,
         remove_unused_columns=False,
         eval_strategy="steps" if args.eval_steps > 0 else "no",
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
         predict_with_generate=False,
         report_to=["tensorboard"],
     )
@@ -329,9 +330,9 @@ if __name__ == "__main__":
     parser.add_argument("--outdir", type=str, default="outputs/prosody2parse")
     parser.add_argument("--model_name", type=str, default="t5-base")
     parser.add_argument("--max_target_length", type=int, default=256)
-    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=5e-5)
-    parser.add_argument("--epochs", type=float, default=20)
+    parser.add_argument("--epochs", type=float, default=30)
     parser.add_argument("--validation_split", type=float, default=0.02)
     parser.add_argument("--eval_steps", type=int, default=500)
     parser.add_argument("--logging_steps", type=int, default=500)
