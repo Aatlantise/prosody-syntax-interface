@@ -1,0 +1,209 @@
+import torch
+import torch.nn as nn
+from transformers import T5Config, T5ForConditionalGeneration
+from transformers.models.t5.modeling_t5 import T5Stack
+
+
+class DualEncoderT5(T5ForConditionalGeneration):
+    """
+    Dual-encoder T5:
+      - word encoder: pretrained or from-config (uses `shared` embedding for words)
+      - prosody encoder: small-vocab T5Stack with its own Embedding
+      - cross-attention fusion: word queries prosody (nn.MultiheadAttention)
+      - decoder: either random (from-config) or pretrained
+
+    Forward signature compatible with HF Trainer (returns dict with loss & logits if labels provided).
+    """
+
+    def __init__(
+        self,
+        config: T5Config,
+        prosody_vocab_size: int = 256,
+        use_pretrained_encoder: bool = False,
+        pretrained_name: str = "t5-base",
+        decoder_from_scratch: bool = True,
+    ):
+        super().__init__(config)
+
+        self.config = config
+
+
+        # word embedding and encoder
+        if use_pretrained_encoder:
+            pre = T5ForConditionalGeneration.from_pretrained(pretrained_name)
+            # shared embedding (word vocabulary, tied with decoder in default T5)
+            self.shared = pre.shared
+            # pretrained encoder (T5Stack)
+            self.word_encoder = pre.encoder
+            # optionally reuse decoder later if requested
+            pretrained_decoder = pre.decoder
+            pretrained_lm_head = pre.lm_head
+        else:
+            # create new shared embedding (random init)
+            self.shared = nn.Embedding(config.vocab_size, config.d_model)
+            self.word_encoder = T5Stack(config, embed_tokens=self.shared)
+            pretrained_decoder = None
+            pretrained_lm_head = None
+
+        # prosody embedding and encoder
+        self.prosody_vocab_size = prosody_vocab_size
+        self.prosody_embedding = nn.Embedding(self.prosody_vocab_size, config.d_model)
+
+        # build prosody encoder stack (same architecture as T5 encoder)
+        self.prosody_encoder = T5Stack(config, embed_tokens=self.prosody_embedding)
+
+        # --- CROSS-ATTENTION (word queries prosody) ---
+        # Use PyTorch MultiheadAttention for reliability and efficiency (batch_first=True)
+        self.cross_attn = T5ForConditionalGeneration(config).decoder.block[0].layer[1]
+
+        # small layernorm + dropout around fusion (optional)
+        self.fusion_layer_norm = nn.LayerNorm(config.d_model)
+        self.fusion_dropout = nn.Dropout(config.dropout_rate)
+
+        # --- DECODER: either random (from-config) or reuse pretrained decoder ---
+        if decoder_from_scratch:
+            # create a decoder embedding separate from `shared` so decoder is independent
+            # If you prefer tied embeddings between encoder and decoder, pass shared to T5Stack
+            self.decoder_embed = nn.Embedding(config.vocab_size, config.d_model)
+            self.decoder = T5Stack(config, embed_tokens=self.decoder_embed)
+            # LM head tied to decoder embedding (weight tying)
+            self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
+            # tie weights
+            self.lm_head.weight = self.decoder_embed.weight
+            # initialize decoder params with T5 init style if needed (left to HF internals in T5Stack)
+        else:
+            # reuse pretrained decoder and lm_head if pretrained encoder was loaded
+            if use_pretrained_encoder:
+                self.decoder = pretrained_decoder
+                self.lm_head = pretrained_lm_head
+            else:
+                # no pretrained available → build random decoder but tie to shared embedding if desired
+                self.decoder = T5Stack(config, embed_tokens=self.shared)
+                self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
+                self.lm_head.weight = self.shared.weight
+
+
+    # ---------------------------
+    # Utility: compute key padding mask for nn.MultiheadAttention
+    # nn.MultiheadAttention with batch_first=True expects key_padding_mask shape (B, S)
+    # with True in positions that should be masked (i.e., padding positions).
+    # ---------------------------
+    @staticmethod
+    def _make_key_padding_mask(attn_mask):
+        # attention_mask is 1 for valid tokens, 0 for padding (HF convention)
+        # key_padding_mask expects True where positions are to be ignored
+        if attn_mask is None:
+            return None
+        return ~(attn_mask.bool())  # True for pads
+
+    def forward(
+        self,
+        input_ids=None,            # word token ids (B, Tw)
+        attention_mask=None,       # mask for words (B, Tw)
+        prosody_ids=None,          # prosody token ids (B, Tp) aligned to words typically (B, Tw)
+        prosody_mask=None,         # mask for prosody (B, Tp) or same as attention_mask
+        decoder_input_ids=None,    # optional decoder input ids for teacher forcing
+        labels=None,               # optional labels (B, T_y) with -100 for pad
+        return_dict: bool = True,
+        **kwargs
+    ):
+        """
+        - Assumes prosody_ids are aligned to input_ids shape (same sequence length).
+        - If prosody_mask is None, uses attention_mask.
+        - decoder_input_ids: if None and labels provided, we will shift labels inside if using lm_head
+        """
+        # --- Encode words ---
+        # word_encoder accepts input_ids & attention_mask directly and returns BaseModelOutput
+        if input_ids is not None:
+            word_enc_out = self.word_encoder(input_ids=input_ids, attention_mask=attention_mask, return_dict=True, use_cache=False)
+            # T5Stack returns .last_hidden_state or .last_hidden_state is accessible as .last_hidden_state
+            # but to be robust, read .last_hidden_state or .last_hidden_state alias:
+            try:
+                word_states = word_enc_out.last_hidden_state
+            except AttributeError:
+                # fallback for different HF versions
+                word_states = word_enc_out[0]
+
+        # --- Encode prosody ---
+        if prosody_ids is not None:
+            if prosody_mask is None:
+                prosody_mask = attention_mask
+
+            pros_enc_out = self.prosody_encoder(input_ids=prosody_ids, attention_mask=prosody_mask, return_dict=True, use_cache=False)
+            try:
+                prosody_states = pros_enc_out.last_hidden_state
+            except AttributeError:
+                prosody_states = pros_enc_out[0]
+
+        # --- Cross-attention: word queries prosody ---
+        if input_ids is not None and prosody_ids is not None:
+            # key_padding_mask expects True where positions are *to be ignored* (padding positions).
+            key_padding_mask = self._make_key_padding_mask(prosody_mask)  # (B, Tp)
+            # MultiheadAttention (batch_first=True): query=(B, Tw, d), key=(B, Tp, d)
+            cross_out, _ = self.cross_attn(query=word_states, key=prosody_states, value=prosody_states, key_padding_mask=key_padding_mask)
+
+            # Fusion: add cross-attn output to word states (residual) -> normalize + dropout
+            fused = word_states + self.fusion_dropout(cross_out)
+            fused = self.fusion_layer_norm(fused)
+        elif input_ids is not None:
+            fused = word_states
+        elif prosody_ids is not None:
+            fused = prosody_states
+
+        # --- Decoder ---
+        # Prepare decoder inputs. If decoder_input_ids not provided but labels exist, shift labels.
+        if decoder_input_ids is None and labels is not None:
+            # classic shift-right for T5: decoder_input_ids = shift_right(labels)
+            # We can use HF T5 shift method if present; otherwise implement a simple shift_right
+            decoder_input_ids = self._shift_right_t5(labels)
+
+        # T5Stack decoder expects input_ids or inputs_embeds and encoder_hidden_states
+        decoder_outputs = self.decoder(
+            input_ids=decoder_input_ids,
+            encoder_hidden_states=fused,
+            encoder_attention_mask=attention_mask,
+            return_dict=True,
+            use_cache=False,
+        )
+
+        # logits from LM head (on top of decoder last hidden state)
+        dec_hidden = decoder_outputs.last_hidden_state
+        logits = self.lm_head(dec_hidden)
+
+        loss = None
+        if labels is not None:
+            # compute loss (shifted labels are typical for seq2seq)
+            # align logits and labels: logits: (B, T, V), labels: (B, T) expected to be decoder-target tokens (not shifted)
+            # If we used shift_right earlier, labels are raw target ids and logits are aligned to predict next tokens
+            loss_fct = nn.CrossEntropyLoss(ignore_index=-100)
+            loss = loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
+
+        if return_dict:
+            return {"loss": loss, "logits": logits, "encoder_last_hidden_state": fused}
+        else:
+            return loss, logits, fused
+
+
+    # ---------------------------
+    # helper: T5 shift_right implementation (simple)
+    # ---------------------------
+    def _shift_right_t5(self, labels):
+        """
+        Shift the labels to the right, and prepend decoder start token id.
+        This is a simple implementation that uses config.decoder_start_token_id if present,
+        otherwise uses eos_token_id as start.
+        """
+        if labels is None:
+            return None
+        decoder_start_token_id = getattr(self.config, "decoder_start_token_id", None)
+        if decoder_start_token_id is None:
+            decoder_start_token_id = getattr(self.config, "eos_token_id", 1)
+
+        # labels: (B, T)
+        shifted = labels.new_zeros(labels.size())
+        shifted[:, 0] = decoder_start_token_id
+        shifted[:, 1:] = labels[:, :-1]
+        # replace -100 (ignore) with pad_token_id if present
+        pad_token_id = getattr(self.config, "pad_token_id", 0)
+        shifted = shifted.masked_fill(shifted == -100, pad_token_id)
+        return shifted
