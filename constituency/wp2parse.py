@@ -14,7 +14,7 @@ from transformers import (
 )
 
 from constituency.util import TokenizerBuilder
-from model import DualEncoderT5  # your cleaned-up DualEncoder class
+from constituency.model import DualEncoderT5  # your cleaned-up DualEncoder class
 
 # -------------------------
 # Tokenizer
@@ -88,34 +88,59 @@ class DualEncoderCollator:
         self.device = device
 
     def __call__(self, batch):
-        # Word encoder inputs
+
+        # === TEXT SIDE ===
         input_ids = [torch.tensor(ex["input_ids"], dtype=torch.long) for ex in batch]
         attention_mask = [torch.tensor(ex["attention_mask"], dtype=torch.long) for ex in batch]
 
         input_ids = pad_sequence(input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id)
         attention_mask = pad_sequence(attention_mask, batch_first=True, padding_value=0)
 
-        # Prosody encoder
-        pause = [torch.tensor(ex["pause"], dtype=torch.float) for ex in batch]
-        duration = [torch.tensor(ex["duration"], dtype=torch.float) for ex in batch]
+        # === PROSODY SIDE (repeat word-level features over subwords) ===
+        prosody_list = []
+        prosody_mask_list = []
 
-        pause = pad_sequence(pause, batch_first=True, padding_value=0.0)
-        duration = pad_sequence(duration, batch_first=True, padding_value=0.0)
-        prosody_mask = (pause != 0.0).long()
+        for ex in batch:
+            # word-level features
+            dur = ex["duration"]     # list of floats, len = num_words
+            pau = ex["pause"]        # list of floats, len = num_words
+            word_ids = ex["word_ids"]  # subword → word mapping
 
-        # Labels
+            # expand to subword-level
+            dur_sub = []
+            pau_sub = []
+            mask_sub = []
+
+            for w in word_ids:
+                if w is None:
+                    # special tokens
+                    dur_sub.append(0.0)
+                    pau_sub.append(0.0)
+                    mask_sub.append(0)
+                else:
+                    dur_sub.append(float(dur[w]))
+                    pau_sub.append(float(pau[w]))
+                    mask_sub.append(1)
+
+            prosody_list.append(torch.tensor(list(zip(dur_sub, pau_sub)), dtype=torch.float))
+            prosody_mask_list.append(torch.tensor(mask_sub, dtype=torch.long))
+
+        # pad to batch dimension
+        prosody = pad_sequence(prosody_list, batch_first=True, padding_value=0.0)
+        prosody_mask = pad_sequence(prosody_mask_list, batch_first=True, padding_value=0)
+
+        # === LABELS ===
         labels = [torch.tensor(ex["labels"], dtype=torch.long) for ex in batch]
         labels = pad_sequence(labels, batch_first=True, padding_value=-100)
 
-        batch_dict = {
+        return {
             "input_ids": input_ids,
             "attention_mask": attention_mask,
-            "pause": pause,
-            "duration": duration,
-            "prosody_mask": prosody_mask,
+            "prosody": prosody,             # shape: (B, T_subwords, 2) [duration, pause]
+            # todo: pass one prosody feature at a time
+            "prosody_mask": prosody_mask,   # shape: (B, T_subwords)
             "labels": labels,
         }
-        return batch_dict
 
 # -------------------------
 # Main Experiment 4
@@ -191,7 +216,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, default="/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json")
-    parser.add_argument("--outdir", type=str, default="outputs/dualencoder")
+    parser.add_argument("--outdir", type=str, default="outputs/wp_with_duration")
     parser.add_argument("--model_name", type=str, default="t5-base")
     parser.add_argument("--max_source_length", type=int, default=256)
     parser.add_argument("--max_target_length", type=int, default=256)

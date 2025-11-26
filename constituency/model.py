@@ -45,12 +45,49 @@ class DualEncoderT5(T5ForConditionalGeneration):
             pretrained_decoder = None
             pretrained_lm_head = None
 
-        # prosody embedding and encoder
-        self.prosody_vocab_size = prosody_vocab_size
-        self.prosody_embedding = nn.Embedding(self.prosody_vocab_size, config.d_model)
+        # store dims
+        self.prosody_feature_dim = 1   # e.g., 1 (pause) or 2 (pause+dur)
+        self.prosody_latent_dim = 8     # e.g., 8 or 16
+        prosody_n_heads = 2
+        prosody_n_layers = 2
 
-        # build prosody encoder stack (same architecture as T5 encoder)
-        self.prosody_encoder = T5Stack(config, embed_tokens=self.prosody_embedding)
+        # ---------------------
+        # 1) Project continuous prosody -> small latent (d_p)
+        # ---------------------
+        # simple 2-layer MLP with activation + optional layernorm
+        self.prosody_proj_in = nn.Sequential(
+            nn.Linear(self.prosody_feature_dim, self.prosody_latent_dim),
+            nn.ReLU(),
+            nn.LayerNorm(self.prosody_latent_dim),
+            nn.Linear(self.prosody_latent_dim, self.prosody_latent_dim),
+            nn.ReLU()
+        )
+
+        # ---------------------
+        # 2) Learned positional embeddings for prosody latent sequence
+        #    (we add these to the prosody projection so positions are distinguished)
+        # ---------------------
+        self.prosody_max_len = 256
+        self.prosody_pos_emb = nn.Embedding(self.prosody_max_len, self.prosody_latent_dim)
+
+        # ---------------------
+        # 3) Mini Transformer encoder for prosody (nn.TransformerEncoder)
+        #    small stack so it is lightweight
+        # ---------------------
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=self.prosody_latent_dim,
+            nhead=prosody_n_heads,
+            dim_feedforward=max(4 * self.prosody_latent_dim, 64),
+            dropout=float(getattr(config, "dropout_rate", 0.1)),
+            batch_first=True,       # important: we use batch_first
+            activation="relu"
+        )
+        self.prosody_transformer = nn.TransformerEncoder(encoder_layer, num_layers=prosody_n_layers)
+
+        # ---------------------
+        # 4) Up-projection from prosody latent -> T5 d_model for cross-attention
+        # ---------------------
+        self.prosody_up = nn.Linear(self.prosody_latent_dim, config.d_model)
 
         # --- CROSS-ATTENTION (word queries prosody) ---
         # Use PyTorch MultiheadAttention for reliability and efficiency (batch_first=True)
@@ -100,7 +137,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
         self,
         input_ids=None,            # word token ids (B, Tw)
         attention_mask=None,       # mask for words (B, Tw)
-        prosody_ids=None,          # prosody token ids (B, Tp) aligned to words typically (B, Tw)
+        prosody_feats=None,        # new: (B, Tp, F) float tensor, F = prosody_feature_dim
         prosody_mask=None,         # mask for prosody (B, Tp) or same as attention_mask
         decoder_input_ids=None,    # optional decoder input ids for teacher forcing
         labels=None,               # optional labels (B, T_y) with -100 for pad
@@ -125,18 +162,42 @@ class DualEncoderT5(T5ForConditionalGeneration):
                 word_states = word_enc_out[0]
 
         # --- Encode prosody ---
-        if prosody_ids is not None:
+        prosody_states = None
+        if prosody_feats is not None:
+            # prosody_feats expected shape (B, T_p, F)
+            # If prosody_mask is None, try to use attention_mask (after possible expansion)
             if prosody_mask is None:
+                # If prosody sequence was expanded to match input_ids length, use attention_mask
                 prosody_mask = attention_mask
 
-            pros_enc_out = self.prosody_encoder(input_ids=prosody_ids, attention_mask=prosody_mask, return_dict=True, use_cache=False)
-            try:
-                prosody_states = pros_enc_out.last_hidden_state
-            except AttributeError:
-                prosody_states = pros_enc_out[0]
+            # 2.1 Project to small latent dim
+            # flatten to (B*T_p, F) if needed is avoided since Sequential handles (B,T,F)->(B,T,d)
+            x = self.prosody_proj_in(prosody_feats)  # → (B, T_p, d_p)
+
+            # 2.2 Add learned positional embeddings (clip positions if needed)
+            batch_size, seq_len, _ = x.shape
+            device = x.device
+            pos_ids = torch.arange(seq_len, device=device).unsqueeze(0).expand(batch_size, -1)  # (B, T_p)
+            pos_emb = self.prosody_pos_emb(pos_ids)  # (B, T_p, d_p)
+            x = x + pos_emb
+
+            # 2.3 Build src_key_padding_mask for TransformerEncoder: mask True where padding
+            # HF convention: prosody_mask has 1 for valid tokens, 0 for padding
+            if prosody_mask is not None:
+                # Transformer expects key_padding_mask with True for positions to be masked
+                src_key_padding_mask = (prosody_mask == 0)  # shape (B, T_p)
+            else:
+                src_key_padding_mask = None
+
+            # 2.4 Run mini-transformer (batch_first=True)
+            # nn.TransformerEncoder with batch_first expects (B, T, d)
+            pros_out = self.prosody_transformer(x, src_key_padding_mask=src_key_padding_mask)  # (B, T_p, d_p)
+
+            # 2.5 Upsample to d_model to match T5 hidden size
+            prosody_states = self.prosody_up(pros_out)  # (B, T_p, d_model)
 
         # --- Cross-attention: word queries prosody ---
-        if input_ids is not None and prosody_ids is not None:
+        if input_ids is not None and prosody_feats is not None:
             # key_padding_mask expects True where positions are *to be ignored* (padding positions).
             key_padding_mask = self._make_key_padding_mask(prosody_mask)  # (B, Tp)
             # MultiheadAttention (batch_first=True): query=(B, Tw, d), key=(B, Tp, d)
@@ -147,7 +208,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
             fused = self.fusion_layer_norm(fused)
         elif input_ids is not None:
             fused = word_states
-        elif prosody_ids is not None:
+        elif prosody_feats is not None:
             fused = prosody_states
 
         # --- Decoder ---
