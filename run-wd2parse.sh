@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name="wp2parse"
+#SBATCH --job-name="wd2parse"
 #SBATCH --output="%x.o%j"
 #SBATCH --time=36:00:00
 #SBATCH --gres=gpu
@@ -9,4 +9,4 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python -m constituency.wp2parse >> wp2parse.log
+python -m constituency.wp2parse --use_text --use_duration >> wd2parse.log
