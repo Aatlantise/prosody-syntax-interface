@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from transformers import T5Config, T5ForConditionalGeneration
 from transformers.models.t5.modeling_t5 import T5Stack
+from torch.nn.utils.rnn import pad_sequence
 
 
 class DualEncoderT5(T5ForConditionalGeneration):
@@ -19,7 +20,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
         self,
         config: T5Config,
         prosody_vocab_size: int = 256,
-        use_pretrained_encoder: bool = False,
+        use_pretrained_encoder: bool = True,
         pretrained_name: str = "t5-base",
         decoder_from_scratch: bool = True,
     ):
@@ -67,7 +68,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
         # 2) Learned positional embeddings for prosody latent sequence
         #    (we add these to the prosody projection so positions are distinguished)
         # ---------------------
-        self.prosody_max_len = 256
+        self.prosody_max_len = prosody_vocab_size
         self.prosody_pos_emb = nn.Embedding(self.prosody_max_len, self.prosody_latent_dim)
 
         # ---------------------
@@ -91,7 +92,11 @@ class DualEncoderT5(T5ForConditionalGeneration):
 
         # --- CROSS-ATTENTION (word queries prosody) ---
         # Use PyTorch MultiheadAttention for reliability and efficiency (batch_first=True)
-        self.cross_attn = T5ForConditionalGeneration(config).decoder.block[0].layer[1]
+        self.cross_attn = nn.MultiheadAttention(
+            embed_dim=config.d_model,
+            num_heads=config.num_heads,
+            batch_first=True
+        )
 
         # small layernorm + dropout around fusion (optional)
         self.fusion_layer_norm = nn.LayerNorm(config.d_model)
@@ -162,7 +167,6 @@ class DualEncoderT5(T5ForConditionalGeneration):
                 word_states = word_enc_out[0]
 
         # --- Encode prosody ---
-        prosody_states = None
         if prosody_feats is not None:
             # prosody_feats expected shape (B, T_p, F)
             # If prosody_mask is None, try to use attention_mask (after possible expansion)
@@ -172,7 +176,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
 
             # 2.1 Project to small latent dim
             # flatten to (B*T_p, F) if needed is avoided since Sequential handles (B,T,F)->(B,T,d)
-            x = self.prosody_proj_in(prosody_feats)  # → (B, T_p, d_p)
+            x = self.prosody_proj_in(prosody_feats.unsqueeze(2))  # → (B, T_p, d_p)
 
             # 2.2 Add learned positional embeddings (clip positions if needed)
             batch_size, seq_len, _ = x.shape
@@ -245,9 +249,6 @@ class DualEncoderT5(T5ForConditionalGeneration):
             return loss, logits, fused
 
 
-    # ---------------------------
-    # helper: T5 shift_right implementation (simple)
-    # ---------------------------
     def _shift_right_t5(self, labels):
         """
         Shift the labels to the right, and prepend decoder start token id.
@@ -268,3 +269,57 @@ class DualEncoderT5(T5ForConditionalGeneration):
         pad_token_id = getattr(self.config, "pad_token_id", 0)
         shifted = shifted.masked_fill(shifted == -100, pad_token_id)
         return shifted
+
+
+class DualEncoderCollator:
+    def __init__(self, tokenizer, device=None, return_text=True, return_pause=False, return_duration=True):
+        self.tokenizer = tokenizer
+        self.device = device
+        self.return_text = return_text
+        self.return_duration = return_duration
+        self.return_pause = return_pause
+
+    def __call__(self, batch):
+
+        # === TEXT SIDE ===
+        input_ids = [torch.tensor(ex["input_ids"], dtype=torch.long) for ex in batch]
+        attention_mask = [torch.tensor(ex["attention_mask"], dtype=torch.long) for ex in batch]
+
+        input_ids = pad_sequence(input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id)
+        attention_mask = pad_sequence(attention_mask, batch_first=True, padding_value=0)
+
+        duration_list = [torch.tensor(ex["duration"], dtype=torch.float) for ex in batch]
+        pause_list = [torch.tensor(ex["pause"], dtype=torch.float) for ex in batch]
+
+
+        # pad to batch dimension
+        duration = pad_sequence(duration_list, batch_first=True, padding_value=0.0)
+        pause = pad_sequence(pause_list, batch_first=True, padding_value=0.0)
+
+        # mask is same for input_id, duration, and pause
+        prosody_mask = pad_sequence(attention_mask, batch_first=True, padding_value=0)
+
+        # === LABELS ===
+        labels = [torch.tensor(ex["labels"], dtype=torch.long) for ex in batch]
+        labels = pad_sequence(labels, batch_first=True, padding_value=-100)
+
+        if not self.return_text:
+            input_ids = None
+        else:
+            pass
+
+        assert not (self.return_duration and self.return_pause)
+        if self.return_duration:
+            prosody = duration
+        elif self.return_pause:
+            prosody = pause
+        else:
+            prosody = None
+
+        return {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "prosody_feats": prosody,
+            "prosody_mask": prosody_mask,   # shape: (B, T_subwords)
+            "labels": labels,
+        }

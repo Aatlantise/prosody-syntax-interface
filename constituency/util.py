@@ -4,7 +4,7 @@ import json
 from tqdm import tqdm
 import stanza
 import re
-from transformers import GPT2TokenizerFast, T5Tokenizer
+from transformers import GPT2TokenizerFast, T5TokenizerFast
 from constituency.data import load_data, extract_examples_from_sent
 
 
@@ -173,7 +173,7 @@ class TokenizerBuilder:
         if 'gpt' in self.model_name:
             tokenizer = ParseTokenizer(self.all_tokens, self.special_tokens)
         elif 't5' in self.model_name:
-                tokenizer = T5Tokenizer.from_pretrained(self.model_name)
+                tokenizer = T5TokenizerFast.from_pretrained(self.model_name)
                 # Add regular tokens (POS, phrase labels, parentheses)
                 tokenizer.add_tokens(self.all_tokens)
 
@@ -299,6 +299,91 @@ def tokenizer_test():
 def corpus_test():
     corpus = CorpusBuilder()
     corpus()
+
+
+def load_jsonl_data(path, debug=False):
+    items = []
+    i = 0
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            obj = json.loads(line)
+            if "text" not in obj or "pause" not in obj or "duration" not in obj or "parse" not in obj:
+                continue
+            items.append({
+                "text": obj["text"],
+                "pause": obj["pause"],
+                "duration": obj["duration"],
+                "parse": obj["parse"],
+            })
+            i += 1
+            if debug and i == 100:
+                break
+    return items
+
+
+def preprocess(tokenizer, examples, max_source_length, max_target_length):
+    inputs = [_.lower() for _ in examples["text"]]
+    targets = examples["parse"]
+
+    model_inputs = tokenizer(
+        inputs,
+        truncation=True,
+        max_length=max_source_length,
+        padding="max_length"
+    )
+
+    token_level_durations = []
+    token_level_pauses = []
+    for i in range(len(inputs)):
+        input_ids = model_inputs["input_ids"][i]
+        p = examples["pause"][i]
+        d = examples["duration"][i]
+        word_id = model_inputs.word_ids(i)
+        _token_level_pause = []
+        _token_level_duration = []
+        punc = set()
+        for j, w in enumerate(word_id):
+            # jth sub-word token is part of kth word, including punctuation
+            t = tokenizer.decode(input_ids[j])
+
+            # skip punctuation marks, add to set of punctuation-words
+            if not t.isalpha():
+                punc.add(w)
+                continue
+
+            # kth word, discounting punctuation marks
+            _token_level_pause.append(p[w - len(punc)])
+            _token_level_duration.append(d[w - len(punc)])
+
+        padding_zeros = [0.0] * (max_source_length - len(_token_level_pause))
+        _token_level_duration += padding_zeros
+        _token_level_pause += padding_zeros
+
+        token_level_durations.append(_token_level_duration)
+        token_level_pauses.append(_token_level_pause)
+
+    with tokenizer.as_target_tokenizer():
+        labels = tokenizer(
+            targets,
+            truncation=True,
+            max_length=max_target_length,
+            padding="max_length"
+        )
+
+    # Replace pad token id in labels with -100 for loss masking
+    label_pad_token_id = -100
+    labels_ids = [
+        [(x if x != tokenizer.pad_token_id else label_pad_token_id) for x in seq]
+        for seq in labels["input_ids"]
+    ]
+
+    return {
+        "input_ids": model_inputs["input_ids"],
+        "attention_mask": model_inputs["attention_mask"],
+        "pause": token_level_pauses,
+        "duration": token_level_durations,
+        "labels": labels_ids,
+    }
 
 if __name__ == '__main__':
     corpus_test()
