@@ -117,9 +117,4 @@ if __name__ == "__main__":
         feats.append("text")
     args.outdir = f"output/{'_'.join(feats)}"
 
-    args.use_text = True
-    args.use_duration = False
-    args.use_pause = True
-
-
     main(args)
