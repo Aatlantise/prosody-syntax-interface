@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name="zero2parse"
+#SBATCH --job-name="wz2parse"
 #SBATCH --output="%x.o%j"
 #SBATCH --time=36:00:00
 #SBATCH --gres=gpu

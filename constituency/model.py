@@ -205,7 +205,8 @@ class DualEncoderT5(T5ForConditionalGeneration):
             # key_padding_mask expects True where positions are *to be ignored* (padding positions).
             key_padding_mask = self._make_key_padding_mask(prosody_mask)  # (B, Tp)
             # MultiheadAttention (batch_first=True): query=(B, Tw, d), key=(B, Tp, d)
-            cross_out, _ = self.cross_attn(query=word_states, key=prosody_states, value=prosody_states, key_padding_mask=key_padding_mask)
+            # Ethan: text should bq Q, V; prosody should be K, since prosody is the key that controls access to information in text
+            cross_out, _ = self.cross_attn(query=word_states, key=prosody_states, value=word_states, key_padding_mask=key_padding_mask)
 
             # Fusion: add cross-attn output to word states (residual) -> normalize + dropout
             fused = word_states + self.fusion_dropout(cross_out)
@@ -318,7 +319,7 @@ class DualEncoderCollator:
             prosody = None
 
         if self.return_zeros:
-            prosody = torch.zeros([16, 256], dtype=torch.float)
+            prosody = torch.zeros(attention_mask.shape, dtype=torch.float)
 
         return {
             "input_ids": input_ids,

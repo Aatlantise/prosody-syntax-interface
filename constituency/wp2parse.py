@@ -98,7 +98,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=5e-5)
     parser.add_argument("--epochs", type=int, default=30)
-    parser.add_argument("--validation_split", type=float, default=0.02)
+    parser.add_argument("--validation_split", type=float, default=0.1)
     parser.add_argument("--eval_steps", type=int, default=500)
     parser.add_argument("--logging_steps", type=int, default=500)
     parser.add_argument("--save_steps", type=int, default=500)
@@ -120,6 +120,6 @@ if __name__ == "__main__":
         feats.append("duration")
     if args.use_text:
         feats.append("text")
-    args.outdir = f"output/{'_'.join(feats)}"
+    args.outdir = f"outputs/{'_'.join(feats)}"
 
     main(args)
