@@ -20,7 +20,7 @@ def main(args):
     outdir.mkdir(parents=True, exist_ok=True)
 
     print("Loading data...")
-    items = load_jsonl_data(args.data, debug=False)
+    items = load_jsonl_data(args.data, debug=args.debug)
     print(f"Loaded {len(items)} examples.")
 
     ds = Dataset.from_list(items)
@@ -48,7 +48,8 @@ def main(args):
                                    device=args.device,
                                    return_text=args.use_text,
                                    return_pause=args.use_pause,
-                                   return_duration=args.use_duration)
+                                   return_duration=args.use_duration,
+                                   return_zeros=args.use_zeros)
 
     training_args = Seq2SeqTrainingArguments(
         output_dir=str(outdir / "model"),
@@ -105,13 +106,17 @@ if __name__ == "__main__":
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--use_pause", action="store_true", default=False)
     parser.add_argument("--use_duration", action="store_true", default=False)
+    parser.add_argument("--use_zeros", action="store_true", default=False)
     parser.add_argument("--use_text", action="store_true", default=False)
+    parser.add_argument("--debug", action="store_true", default=False)
     args = parser.parse_args()
 
     feats = []
-    if args.use_pause:
+    if args.use_zeros:
+        feats.append("zero")
+    elif args.use_pause:
         feats.append("pause")
-    if args.use_duration:
+    elif args.use_duration:
         feats.append("duration")
     if args.use_text:
         feats.append("text")

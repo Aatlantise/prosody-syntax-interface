@@ -272,12 +272,13 @@ class DualEncoderT5(T5ForConditionalGeneration):
 
 
 class DualEncoderCollator:
-    def __init__(self, tokenizer, device=None, return_text=True, return_pause=False, return_duration=True):
+    def __init__(self, tokenizer, device=None, return_text=False, return_pause=False, return_duration=False, return_zeros=False):
         self.tokenizer = tokenizer
         self.device = device
         self.return_text = return_text
         self.return_duration = return_duration
         self.return_pause = return_pause
+        self.return_zeros = return_zeros
 
     def __call__(self, batch):
 
@@ -315,6 +316,9 @@ class DualEncoderCollator:
             prosody = pause
         else:
             prosody = None
+
+        if self.return_zeros:
+            prosody = torch.zeros([16, 256], dtype=torch.float)
 
         return {
             "input_ids": input_ids,
