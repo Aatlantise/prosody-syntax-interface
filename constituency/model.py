@@ -319,6 +319,7 @@ class DualEncoderCollator:
             prosody = None
 
         if self.return_zeros:
+            prosody = torch.rand(attention_mask.shape, dtype=torch.float)
             prosody_mask = torch.zeros(attention_mask.shape, dtype=torch.float)
 
         return {
