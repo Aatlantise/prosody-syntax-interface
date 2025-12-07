@@ -238,11 +238,14 @@ class DualEncoderT5(T5ForConditionalGeneration):
 
         loss = None
         if labels is not None:
-            # compute loss (shifted labels are typical for seq2seq)
-            # align logits and labels: logits: (B, T, V), labels: (B, T) expected to be decoder-target tokens (not shifted)
-            # If we used shift_right earlier, labels are raw target ids and logits are aligned to predict next tokens
-            loss_fct = nn.CrossEntropyLoss(ignore_index=-100)
-            loss = loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
+            logits_ = logits.view(-1, logits.size(-1))
+            labels_ = labels.view(-1)
+
+            mask = labels_ != -100
+            masked_logits = logits_[mask]  # (N_valid, V)
+            masked_labels = labels_[mask]  # (N_valid,)
+
+            loss = nn.CrossEntropyLoss()(masked_logits, masked_labels)
 
         if return_dict:
             return {"loss": loss, "logits": logits, "encoder_last_hidden_state": fused}
@@ -319,8 +322,8 @@ class DualEncoderCollator:
             prosody = None
 
         if self.return_zeros:
-            prosody = torch.rand(attention_mask.shape, dtype=torch.float)
-            prosody_mask = torch.zeros(attention_mask.shape, dtype=torch.float)
+            prosody = torch.zeros(attention_mask.shape, dtype=torch.float)
+            prosody_mask = torch.ones(attention_mask.shape, dtype=torch.float)
 
         return {
             "input_ids": input_ids,

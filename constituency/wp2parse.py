@@ -3,7 +3,7 @@ from pathlib import Path
 from datasets import Dataset
 from transformers import (
     T5Config, Seq2SeqTrainer, Seq2SeqTrainingArguments,
-    PreTrainedTokenizerBase
+    PreTrainedTokenizerBase, EarlyStoppingCallback
 )
 from constituency.util import TokenizerBuilder, load_jsonl_data, preprocess
 from constituency.model import DualEncoderT5, DualEncoderCollator
@@ -78,6 +78,7 @@ def main(args):
         data_collator=collator,
         train_dataset=tokenized_train,
         eval_dataset=tokenized_eval,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=5)]
     )
     trainer.model.floating_point_ops = lambda _: 0 # allow input_ids = None
 
