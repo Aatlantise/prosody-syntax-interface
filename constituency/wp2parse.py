@@ -57,6 +57,8 @@ def main(args):
     print("Missing keys:", missing)
     print("Unexpected keys:", unexpected)
 
+    model.word_encoder.embed_tokens = model.shared
+
     model.to(args.device)
 
     collator = DualEncoderCollator(tokenizer,
@@ -126,10 +128,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_text", action="store_true", default=False)
     parser.add_argument("--debug", action="store_true", default=False)
     args = parser.parse_args()
-
-    args.debug = True
-    args.use_pause = True
-
+    
     feats = []
     if args.use_zeros:
         feats.append("zero")
