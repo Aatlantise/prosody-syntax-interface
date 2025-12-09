@@ -1,8 +1,200 @@
-import torch
-import torch.nn as nn
 from transformers import T5Config, T5ForConditionalGeneration
 from transformers.models.t5.modeling_t5 import T5Stack
 from torch.nn.utils.rnn import pad_sequence
+import math
+import torch
+import torch.nn as nn
+from typing import Optional, Tuple
+
+
+class ProsodyEncoder(nn.Module):
+    """
+    Prosody encoder that implements:
+      - centisecond binning of scalar prosody values (0..255; 255 = >=2.55s)
+      - sinusoidal lookup for positions (base_pos) and for magnitude bins (base_mag)
+      - concatenation of pos_encoding||mag_encoding -> vector dim = prosody_dim (D)
+      - small TransformerEncoder stack over these vectors (no projection before stack)
+      - optional up-projection to target_dim for cross-attention fusion
+
+    Inputs:
+      prosody_vals: FloatTensor[B, T]  (raw continuous measurement per token; e.g., pause length seconds)
+      prosody_mask: Bool/LongTensor[B, T]  (1 for valid positions, 0 for padding) or None -> all valid
+
+    Outputs:
+      prosody_states: FloatTensor[B, T, out_dim]  (out_dim == prosody_dim if up_proj=False else target_dim)
+      prosody_mask: same mask as input (Bool Tensor)
+    """
+    def __init__(
+        self,
+        prosody_dim: int = 16,          # D total (must be >=2)
+        max_len: int = 256,             # maximum sequence length expected (positions)
+        base_pos: float = 10000.0,      # frequency base for positional sinusoids
+        base_mag: float = 20000.0,      # frequency base for magnitude sinusoids (different from pos)
+        prosody_bins: int = 256,        # number of centisecond bins (0..255)
+        transformer_heads: int = 2,
+        transformer_layers: int = 2,
+        transformer_ff: Optional[int] = None,
+        dropout: float = 0.1,
+        target_dim: Optional[int] = None,   # if provided, up-project to this dim for fusion
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
+    ):
+        super().__init__()
+        assert prosody_dim >= 2, "prosody_dim must be >= 2"
+        # we'll split prosody_dim into pos_dim and mag_dim
+        pos_dim = prosody_dim // 2
+        mag_dim = prosody_dim - pos_dim
+
+        self.prosody_dim = prosody_dim
+        self.pos_dim = pos_dim
+        self.mag_dim = mag_dim
+        self.max_len = max_len
+        self.prosody_bins = prosody_bins
+        self.base_pos = base_pos
+        self.base_mag = base_mag
+        self.target_dim = target_dim
+
+        self.device = device
+        self.dtype = dtype
+
+        # Precompute sinusoidal tables (positions and magnitude bins)
+        # shape (1, max_len, pos_dim) and (1, prosody_bins, mag_dim)
+        pos_table = self._build_sinusoidal_table(max_len, pos_dim, base_pos)
+        mag_table = self._build_sinusoidal_table(prosody_bins, mag_dim, base_mag)
+
+        # register as buffers so they move with .to(device)
+        self.register_buffer("pos_table", pos_table)   # (1, max_len, pos_dim)
+        self.register_buffer("mag_table", mag_table)   # (1, prosody_bins, mag_dim)
+
+        # Small Transformer encoder on top of the concatenated vectors
+        d_model = prosody_dim
+        if transformer_ff is None:
+            transformer_ff = max(4 * d_model, 64)
+
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model,
+            nhead=transformer_heads,
+            dim_feedforward=transformer_ff,
+            dropout=dropout,
+            batch_first=True,
+            activation="relu"
+        )
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=transformer_layers)
+
+        # Optional up-projection to match e.g. T5 d_model for cross-attention
+        if target_dim is not None:
+            self.up_proj = nn.Linear(d_model, target_dim)
+        else:
+            self.up_proj = None
+
+        # small dropout after up-projection if used
+        self.out_dropout = nn.Dropout(dropout)
+
+    @staticmethod
+    def _build_sinusoidal_table(length: int, dim: int, base: float) -> torch.Tensor:
+        """
+        Build (1, length, dim) sinusoidal table using base (like 10000).
+        Uses standard formulation but with base argument to separate pos/mag frequencies.
+        """
+        pe = torch.zeros(length, dim)
+        position = torch.arange(0, length).unsqueeze(1).float()
+        div_term = torch.exp(torch.arange(0, dim, 2).float() * (-math.log(base) / dim))
+        if dim % 2 == 1:
+            # handle odd dims by computing for floor(dim/2) pairs and leaving last column zero
+            even_dim = dim - 1
+            div_term = torch.exp(torch.arange(0, even_dim, 2).float() * (-math.log(base) / dim))
+            pe[:, 0:even_dim:2] = torch.sin(position * div_term)
+            pe[:, 1:even_dim:2] = torch.cos(position * div_term)
+            # last column remains zero (or could copy last cos)
+        else:
+            pe[:, 0::2] = torch.sin(position * div_term)
+            pe[:, 1::2] = torch.cos(position * div_term)
+        return pe.unsqueeze(0)  # (1, length, dim)
+
+    @staticmethod
+    def bin_centiseconds(values_seconds: torch.Tensor) -> torch.LongTensor:
+        """
+        Bin durations/pause values into centisecond bins 0..255.
+        values_seconds: Tensor[B, T] float seconds
+        Returns LongTensor[B, T] with integers in 0..255
+        """
+        # convert seconds -> centiseconds integer
+        # floor to nearest centisecond
+        cs = (values_seconds * 100.0).floor().long()  # centiseconds
+        cs = torch.clamp(cs, min=0, max=255)
+        return cs
+
+    def forward(
+        self,
+        prosody_vals: torch.Tensor,        # shape (B, T) float seconds (can be already binned if you prefer)
+        prosody_mask: Optional[torch.Tensor] = None,  # shape (B, T) 1/0 (1=valid)
+        already_binned: bool = False
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Returns:
+          prosody_states: (B, T, out_dim) where out_dim == prosody_dim or target_dim if up_proj set
+          prosody_mask: BoolTensor (B, T) where True=valid
+        """
+        # Device and dtype forwarding
+        device = prosody_vals.device
+        dtype = prosody_vals.dtype
+
+        # 1) get bin indices
+        if already_binned:
+            bin_idx = prosody_vals.long().clamp(0, self.prosody_bins - 1)  # ensure long
+        else:
+            bin_idx = self.bin_centiseconds(prosody_vals)  # (B, T) long in 0..255
+
+        B, T = bin_idx.shape
+
+        # 2) build magnitude and positional encodings from lookup tables
+        # mag: use bin index to lookup the mag_table
+        # mag_table: (1, prosody_bins, mag_dim)
+        mag_table = self.mag_table.to(device=device, dtype=dtype)
+        # gather: expand bin_idx to (B, T, mag_dim) via indexing
+        mag_enc = mag_table[0].index_select(0, bin_idx.view(-1)).view(B, T, self.mag_dim)  # (B,T,mag_dim)
+
+        # pos: take first T entries from pos_table
+        pos_table = self.pos_table.to(device=device, dtype=dtype)
+        if T > self.max_len:
+            raise ValueError(f"Sequence length {T} > max_len {self.max_len}; increase max_len.")
+        pos_enc = pos_table[:, :T, :].expand(B, -1, -1)  # (B, T, pos_dim)
+
+        # 3) concatenate pos||mag -> (B, T, prosody_dim)
+        x = torch.cat([pos_enc, mag_enc], dim=-1)
+
+        # 4) build src_key_padding_mask expected by TransformerEncoder
+        # TransformerEncoder expects src_key_padding_mask bool with True for positions to be masked (i.e., padding)
+        if prosody_mask is None:
+            src_key_padding_mask = None
+            prosody_mask_bool = torch.ones(B, T, dtype=torch.bool, device=device)
+        else:
+            # user may pass 1/0 longs or bools; we want bool where True = valid
+            prosody_mask_bool = (prosody_mask != 0).to(torch.bool).to(device)
+            # invert for src_key_padding_mask: True means position is masked
+            src_key_padding_mask = ~prosody_mask_bool  # True=pad, False=keep
+
+        # If a batch row has all positions masked, provide a dummy time-step to avoid panic in Transformer
+        if src_key_padding_mask is not None:
+            all_masked = src_key_padding_mask.all(dim=1)  # (B,)
+            if all_masked.any():
+                # for those examples, set first position as valid with an arbitrary encoding (pos0 + mag0)
+                idxs = torch.nonzero(all_masked, as_tuple=False).squeeze(1)
+                x[idxs, 0, :] = 0.0  # safe zero vector (pos0/mag0 combination)
+                src_key_padding_mask[idxs, 0] = False
+                prosody_mask_bool[idxs, 0] = True
+
+        # 5) run small transformer
+        # TransformerEncoder expects src_key_padding_mask with True=to-ignore
+        pros_out = self.transformer(x, src_key_padding_mask=src_key_padding_mask)  # (B, T, prosody_dim)
+
+        # 6) optional up-projection
+        if self.up_proj is not None:
+            pros_out = self.out_dropout(self.up_proj(pros_out))  # map to target_dim
+
+        # return pros_out and boolean mask of valid steps
+        return pros_out, prosody_mask_bool
+
 
 
 class DualEncoderT5(T5ForConditionalGeneration):
@@ -52,38 +244,18 @@ class DualEncoderT5(T5ForConditionalGeneration):
         prosody_n_heads = 2
         prosody_n_layers = 2
 
-        # ---------------------
-        # 1) Project continuous prosody -> small latent (d_p)
-        # ---------------------
-        # simple 2-layer MLP with activation + optional layernorm
-        self.prosody_proj_in = nn.Sequential(
-            nn.Linear(self.prosody_feature_dim, self.prosody_latent_dim),
-            nn.ReLU(),
-            nn.LayerNorm(self.prosody_latent_dim),
-            nn.Linear(self.prosody_latent_dim, self.prosody_latent_dim),
-            nn.ReLU()
-        )
-
-        # ---------------------
-        # 2) Learned positional embeddings for prosody latent sequence
-        #    (we add these to the prosody projection so positions are distinguished)
-        # ---------------------
-        self.prosody_max_len = prosody_vocab_size
-        self.prosody_pos_emb = nn.Embedding(self.prosody_max_len, self.prosody_latent_dim)
-
-        # ---------------------
-        # 3) Mini Transformer encoder for prosody (nn.TransformerEncoder)
-        #    small stack so it is lightweight
-        # ---------------------
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=self.prosody_latent_dim,
-            nhead=prosody_n_heads,
-            dim_feedforward=max(4 * self.prosody_latent_dim, 64),
+        self.prosody_encoder = ProsodyEncoder(
+            prosody_dim=16,  # whatever D you decide (8, 16, etc.)
+            max_len=prosody_vocab_size,  # same as before
+            base_pos=10000.0,
+            base_mag=20000.0,
+            prosody_bins=256,  # centisecond bins 0–255
+            transformer_heads=prosody_n_heads,
+            transformer_layers=prosody_n_layers,
+            target_dim=config.d_model,  # IMPORTANT: match T5 dimension for cross-attention
             dropout=float(getattr(config, "dropout_rate", 0.1)),
-            batch_first=True,       # important: we use batch_first
-            activation="relu"
         )
-        self.prosody_transformer = nn.TransformerEncoder(encoder_layer, num_layers=prosody_n_layers)
+
 
         # ---------------------
         # 4) Up-projection from prosody latent -> T5 d_model for cross-attention
@@ -156,6 +328,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
         """
         # --- Encode words ---
         # word_encoder accepts input_ids & attention_mask directly and returns BaseModelOutput
+        word_states = None
         if input_ids is not None:
             word_enc_out = self.word_encoder(input_ids=input_ids, attention_mask=attention_mask, return_dict=True, use_cache=False)
             # T5Stack returns .last_hidden_state or .last_hidden_state is accessible as .last_hidden_state
@@ -167,52 +340,44 @@ class DualEncoderT5(T5ForConditionalGeneration):
                 word_states = word_enc_out[0]
 
         # --- Encode prosody ---
+        # prosody_vals: FloatTensor[B, Tp]
+        # prosody_mask: BoolTensor[B, Tp]
+        prosody_states, prosody_mask_bool = None, None
         if prosody_feats is not None:
-            # prosody_feats expected shape (B, T_p, F)
-            # If prosody_mask is None, try to use attention_mask (after possible expansion)
-            if prosody_mask is None:
-                # If prosody sequence was expanded to match input_ids length, use attention_mask
-                prosody_mask = attention_mask
+            # Now prosody_encoder handles:
+            #   - centisecond binning
+            #   - sinusoidal pos + mag encoding
+            #   - mini-transformer
+            #   - up-projection to config.d_model
+            prosody_states, prosody_mask_bool = self.prosody_encoder(
+                prosody_feats,
+                prosody_mask=prosody_mask,
+                already_binned=False  # or True if your collator already bins to 0–255
+            )
 
-            # 2.1 Project to small latent dim
-            # flatten to (B*T_p, F) if needed is avoided since Sequential handles (B,T,F)->(B,T,d)
-            x = self.prosody_proj_in(prosody_feats.unsqueeze(2))  # → (B, T_p, d_p)
-
-            # 2.2 Add learned positional embeddings (clip positions if needed)
-            batch_size, seq_len, _ = x.shape
-            device = x.device
-            pos_ids = torch.arange(seq_len, device=device).unsqueeze(0).expand(batch_size, -1)  # (B, T_p)
-            pos_emb = self.prosody_pos_emb(pos_ids)  # (B, T_p, d_p)
-            x = x + pos_emb
-
-            # 2.3 Build src_key_padding_mask for TransformerEncoder: mask True where padding
-            # HF convention: prosody_mask has 1 for valid tokens, 0 for padding
-            if prosody_mask is not None:
-                # Transformer expects key_padding_mask with True for positions to be masked
-                src_key_padding_mask = (prosody_mask == 0)  # shape (B, T_p)
-            else:
-                src_key_padding_mask = None
-
-            # 2.4 Run mini-transformer (batch_first=True)
-            # nn.TransformerEncoder with batch_first expects (B, T, d)
-            pros_out = self.prosody_transformer(x, src_key_padding_mask=src_key_padding_mask)  # (B, T_p, d_p)
-
-            # 2.5 Upsample to d_model to match T5 hidden size
-            prosody_states = self.prosody_up(pros_out)  # (B, T_p, d_model)
 
         # --- Cross-attention: word queries prosody ---
         if input_ids is not None and prosody_feats is not None:
-            # key_padding_mask expects True where positions are *to be ignored* (padding positions).
-            key_padding_mask = self._make_key_padding_mask(prosody_mask)  # (B, Tp)
-            # MultiheadAttention (batch_first=True): query=(B, Tw, d), key=(B, Tp, d)
-            # Ethan: text should bq Q, V; prosody should be K, since prosody is the key that controls access to information in text
-            cross_out, _ = self.cross_attn(query=word_states, key=prosody_states, value=word_states, key_padding_mask=key_padding_mask)
 
-            # Fusion: add cross-attn output to word states (residual) -> normalize + dropout
+            # Compute padding mask once
+            # prosody_mask_bool: True = real, False = pad
+            # key_padding_mask: True = ignore
+            key_padding_mask = ~prosody_mask_bool  # (B, Tp)
+
+            # Q = words, K,V = prosody
+            cross_out, _ = self.cross_attn(
+                query=word_states,  # (B, Tw, d)
+                key=prosody_states,  # (B, Tp, d)
+                value=prosody_states,  # (B, Tp, d)
+                key_padding_mask=key_padding_mask,
+            )
+
             fused = word_states + self.fusion_dropout(cross_out)
             fused = self.fusion_layer_norm(fused)
+
         elif input_ids is not None:
             fused = word_states
+
         elif prosody_feats is not None:
             fused = prosody_states
 
