@@ -3,7 +3,7 @@ from pathlib import Path
 from datasets import Dataset
 from transformers import (
     T5Config, Seq2SeqTrainer, Seq2SeqTrainingArguments,
-    PreTrainedTokenizerBase, EarlyStoppingCallback
+    PreTrainedTokenizerBase, EarlyStoppingCallback, T5ForConditionalGeneration
 )
 from constituency.util import TokenizerBuilder, load_jsonl_data, preprocess
 from constituency.model import DualEncoderT5, DualEncoderCollator
@@ -37,12 +37,27 @@ def main(args):
     tokenized_eval = eval_ds.map(preprocess_fn, batched=True, remove_columns=eval_ds.column_names)
 
     print("Initializing DualEncoder model...")
-    config = T5Config.from_pretrained(args.model_name)
-    model = DualEncoderT5(config)
-    model.to(args.device)
 
-    # Ensure embeddings fit tokenizer
-    model.resize_token_embeddings(len(tokenizer))
+    # Load base model + config first
+    base = T5ForConditionalGeneration.from_pretrained(args.model_name)
+
+    # Resize embeddings to new tokenizer
+    base.resize_token_embeddings(len(tokenizer))
+
+    # Update config so new model matches
+    config = base.config
+    config.vocab_size = len(tokenizer)
+
+    # Now build your custom model
+    model = DualEncoderT5(config)
+
+    # Load pretrained weights
+    missing, unexpected = model.load_state_dict(base.state_dict(), strict=False)
+
+    print("Missing keys:", missing)
+    print("Unexpected keys:", unexpected)
+
+    model.to(args.device)
 
     collator = DualEncoderCollator(tokenizer,
                                    device=args.device,
@@ -112,6 +127,9 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action="store_true", default=False)
     args = parser.parse_args()
 
+    args.debug = True
+    args.use_pause = True
+
     feats = []
     if args.use_zeros:
         feats.append("zero")
@@ -121,6 +139,9 @@ if __name__ == "__main__":
         feats.append("duration")
     if args.use_text:
         feats.append("text")
-    args.outdir = f"outputs/{'_'.join(feats)}"
+    if args.debug:
+        feats.append("debug")
+    args.outdir = f"/home/jm3743/prosody-syntax-interface/outputs/{'_'.join(feats)}"
+
 
     main(args)

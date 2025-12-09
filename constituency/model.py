@@ -1,5 +1,6 @@
 from transformers import T5Config, T5ForConditionalGeneration
 from transformers.models.t5.modeling_t5 import T5Stack
+from transformers.modeling_outputs import Seq2SeqLMOutput
 from torch.nn.utils.rnn import pad_sequence
 import math
 import torch
@@ -212,31 +213,15 @@ class DualEncoderT5(T5ForConditionalGeneration):
         self,
         config: T5Config,
         prosody_vocab_size: int = 256,
-        use_pretrained_encoder: bool = True,
-        pretrained_name: str = "t5-base",
-        decoder_from_scratch: bool = True,
     ):
         super().__init__(config)
 
         self.config = config
 
-
         # word embedding and encoder
-        if use_pretrained_encoder:
-            pre = T5ForConditionalGeneration.from_pretrained(pretrained_name)
-            # shared embedding (word vocabulary, tied with decoder in default T5)
-            self.shared = pre.shared
-            # pretrained encoder (T5Stack)
-            self.word_encoder = pre.encoder
-            # optionally reuse decoder later if requested
-            pretrained_decoder = pre.decoder
-            pretrained_lm_head = pre.lm_head
-        else:
-            # create new shared embedding (random init)
-            self.shared = nn.Embedding(config.vocab_size, config.d_model)
-            self.word_encoder = T5Stack(config, embed_tokens=self.shared)
-            pretrained_decoder = None
-            pretrained_lm_head = None
+        self.word_encoder = T5Stack(config)
+        # Create shared embedding
+        self.shared = nn.Embedding(config.vocab_size, config.d_model)
 
         # store dims
         self.prosody_feature_dim = 1   # e.g., 1 (pause) or 2 (pause+dur)
@@ -274,28 +259,15 @@ class DualEncoderT5(T5ForConditionalGeneration):
         self.fusion_layer_norm = nn.LayerNorm(config.d_model)
         self.fusion_dropout = nn.Dropout(config.dropout_rate)
 
-        # --- DECODER: either random (from-config) or reuse pretrained decoder ---
-        if decoder_from_scratch:
-            # create a decoder embedding separate from `shared` so decoder is independent
-            # If you prefer tied embeddings between encoder and decoder, pass shared to T5Stack
-            self.decoder_embed = nn.Embedding(config.vocab_size, config.d_model)
-            self.decoder = T5Stack(config, embed_tokens=self.decoder_embed)
-            # LM head tied to decoder embedding (weight tying)
-            self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
-            # tie weights
-            self.lm_head.weight = self.decoder_embed.weight
-            # initialize decoder params with T5 init style if needed (left to HF internals in T5Stack)
-        else:
-            # reuse pretrained decoder and lm_head if pretrained encoder was loaded
-            if use_pretrained_encoder:
-                self.decoder = pretrained_decoder
-                self.lm_head = pretrained_lm_head
-            else:
-                # no pretrained available → build random decoder but tie to shared embedding if desired
-                self.decoder = T5Stack(config, embed_tokens=self.shared)
-                self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
-                self.lm_head.weight = self.shared.weight
-
+        # --- DECODER: random (from-config)  ---
+        # create a decoder embedding separate from `shared` so decoder is independent
+        # If you prefer tied embeddings between encoder and decoder, pass shared to T5Stack
+        self.decoder_embed = nn.Embedding(config.vocab_size, config.d_model)
+        self.decoder = T5Stack(config, embed_tokens=self.decoder_embed)
+        # LM head tied to decoder embedding (weight tying)
+        self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
+        # tie weights
+        self.lm_head.weight = self.decoder_embed.weight
 
     # ---------------------------
     # Utility: compute key padding mask for nn.MultiheadAttention
@@ -357,6 +329,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
 
 
         # --- Cross-attention: word queries prosody ---
+        fused = None
         if input_ids is not None and prosody_feats is not None:
 
             # Compute padding mask once
@@ -413,7 +386,14 @@ class DualEncoderT5(T5ForConditionalGeneration):
             loss = nn.CrossEntropyLoss()(masked_logits, masked_labels)
 
         if return_dict:
-            return {"loss": loss, "logits": logits, "encoder_last_hidden_state": fused}
+            return Seq2SeqLMOutput(
+                loss=loss,
+                logits=logits,
+                decoder_hidden_states=None,
+                decoder_attentions=None,
+                cross_attentions=None,
+                encoder_last_hidden_state=fused,
+            )
         else:
             return loss, logits, fused
 
