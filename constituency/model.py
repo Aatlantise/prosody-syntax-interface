@@ -217,11 +217,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
         super().__init__(config)
 
         self.config = config
-
-        # word embedding and encoder
-        self.word_encoder = T5Stack(config)
-        # Create shared embedding
-        self.shared = nn.Embedding(config.vocab_size, config.d_model)
+        self.tokenizer = None
 
         # store dims
         self.prosody_feature_dim = 1   # e.g., 1 (pause) or 2 (pause+dur)
@@ -260,10 +256,6 @@ class DualEncoderT5(T5ForConditionalGeneration):
         self.fusion_dropout = nn.Dropout(config.dropout_rate)
 
         # --- DECODER: random (from-config)  ---
-        # create a decoder embedding separate from `shared` so decoder is independent
-        # If you prefer tied embeddings between encoder and decoder, pass shared to T5Stack
-        self.decoder_embed = nn.Embedding(config.vocab_size, config.d_model)
-        self.decoder = T5Stack(config, embed_tokens=self.decoder_embed)
         # LM head tied to decoder embedding (weight tying)
         self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
         # tie weights
@@ -302,7 +294,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
         # word_encoder accepts input_ids & attention_mask directly and returns BaseModelOutput
         word_states = None
         if input_ids is not None:
-            word_enc_out = self.word_encoder(input_ids=input_ids, attention_mask=attention_mask, return_dict=True, use_cache=False)
+            word_enc_out = self.encoder(input_ids=input_ids, attention_mask=attention_mask, return_dict=True, use_cache=False)
             # T5Stack returns .last_hidden_state or .last_hidden_state is accessible as .last_hidden_state
             # but to be robust, read .last_hidden_state or .last_hidden_state alias:
             try:
@@ -374,16 +366,20 @@ class DualEncoderT5(T5ForConditionalGeneration):
         dec_hidden = decoder_outputs.last_hidden_state
         logits = self.lm_head(dec_hidden)
 
+        # logits: (batch, seq_len, vocab_size)
+        debug = True
+        if debug:
+            token_ids = torch.argmax(logits, dim=-1)  # (batch, seq_len)
+            decoded = self.tokenizer.batch_decode(token_ids, skip_special_tokens=True)
+            print(decoded[0])
+
         loss = None
         if labels is not None:
-            logits_ = logits.view(-1, logits.size(-1))
-            labels_ = labels.view(-1)
-
-            mask = labels_ != -100
-            masked_logits = logits_[mask]  # (N_valid, V)
-            masked_labels = labels_[mask]  # (N_valid,)
-
-            loss = nn.CrossEntropyLoss()(masked_logits, masked_labels)
+            loss_fct = nn.CrossEntropyLoss(ignore_index=-100)
+            loss = loss_fct(
+                logits.view(-1, logits.size(-1)),
+                labels.view(-1)
+            )
 
         if return_dict:
             return Seq2SeqLMOutput(
@@ -397,26 +393,34 @@ class DualEncoderT5(T5ForConditionalGeneration):
         else:
             return loss, logits, fused
 
-
     def _shift_right_t5(self, labels):
         """
-        Shift the labels to the right, and prepend decoder start token id.
-        This is a simple implementation that uses config.decoder_start_token_id if present,
-        otherwise uses eos_token_id as start.
+        Performs T5-style right shift:
+          decoder_input_ids[:, 0] = decoder_start_token_id
+          decoder_input_ids[:, 1:] = labels[:, :-1]
+        and replaces -100 with pad_token_id *after* shifting.
         """
         if labels is None:
             return None
-        decoder_start_token_id = getattr(self.config, "decoder_start_token_id", None)
-        if decoder_start_token_id is None:
-            decoder_start_token_id = getattr(self.config, "eos_token_id", 1)
 
-        # labels: (B, T)
-        shifted = labels.new_zeros(labels.size())
-        shifted[:, 0] = decoder_start_token_id
+        pad_token_id = self.config.pad_token_id
+        if pad_token_id is None:
+            pad_token_id = 0
+
+        decoder_start_token_id = self.config.decoder_start_token_id
+        if decoder_start_token_id is None:
+            decoder_start_token_id = self.config.eos_token_id
+
+        # Make a copy
+        shifted = labels.clone()
+
+        # Shift right
         shifted[:, 1:] = labels[:, :-1]
-        # replace -100 (ignore) with pad_token_id if present
-        pad_token_id = getattr(self.config, "pad_token_id", 0)
+        shifted[:, 0] = decoder_start_token_id
+
+        # Replace ignore_index with pad token *after* shifting
         shifted = shifted.masked_fill(shifted == -100, pad_token_id)
+
         return shifted
 
 

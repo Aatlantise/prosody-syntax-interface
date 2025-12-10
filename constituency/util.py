@@ -301,7 +301,7 @@ def corpus_test():
     corpus()
 
 
-def load_jsonl_data(path, debug=False):
+def load_jsonl_data(path="/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json", debug=False):
     items = []
     i = 0
     with open(path, "r", encoding="utf-8") as f:
