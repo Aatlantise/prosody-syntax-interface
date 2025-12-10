@@ -1,0 +1,163 @@
+---
+title: "syntax-prosody-interface"
+output: html_document
+date: "2025-12-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(ggbreak)
+
+df <- data.frame(
+  condition = c(
+    "Autoreg. parse",
+    "Pause",
+    "Duration",
+    "Text",
+    "Pause + Text",
+    "Duration + Text"
+  ),
+  nats_seq = c(50.1, 22.1, 19.7, 5.00, 4.70, 4.26),
+  mi = c(NaN, 28.0, 30.4, 45.1, 45.4, 45.8),
+  mi_given_text = c(NaN, NaN, NaN, NaN, 0.3, 0.7)
+)
+
+get_label <- function(mi, word_context = FALSE) {
+  out <- character(length(mi))   # always return a character vector
+  
+  # non-NaN positions
+  ok <- !is.nan(mi)
+  
+  if (word_context) {
+    out[ok] <- sprintf("MI(X,S|W) = %.1f", mi[ok])
+  } else {
+    out[ok] <- sprintf("MI(X,S) = %.1f", mi[ok])
+  }
+  
+  out
+}
+
+
+df$mi_label <- get_label(df$mi)
+df$mi_text_label <- get_label(df$mi_given_text, word_context=TRUE)
+
+
+# Order factors for prettier plotting
+df$condition <- factor(df$condition, levels = df$condition)
+
+plot1 <- ggplot(df, aes(x = condition, y = nats_seq)) +
+  geom_col(fill = "#556B8F") +
+  geom_text(aes(label = mi_label),
+            vjust = -0.4, size = 3.2) +
+  geom_text(aes(label = mi_text_label),
+            vjust = -1.7, size = 3.2) +
+  scale_y_continuous(
+    limits=c(0, 51),
+    breaks = seq(0, 51, by = 2),
+    minor_breaks = seq(0, 51, by = 1),
+    ) +
+  scale_y_break(c(24, 49)) +
+  scale_y_break(c(7, 18)) +
+  labs(
+    x = "",
+    y = "Entropy (nats per sequence)",
+    title = "Syntactic Entropy given various contexts",
+    subtitle = "All tasks but the first are translation from context to syntactic parse"
+  ) +
+  # geom_hline(yintercept=50.1, linetype="dashed") +
+  # geom_hline(yintercept=5, linetype="dashed") +
+  theme_bw(base_size = 12)
+
+ggsave("bar.pdf", plot1, width = 9, height = 6, dpi = 300)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# -------------------------------
+# Generated parses (different lengths)
+# -------------------------------
+generated_parses <- list(
+  "Autoregressive"   = c("(", "S", "(", "NP", "NN", ")", "(", "VP", "VBZ", "(", "NP", "DT", "NN", ")", ")", ")", "(", ".", ".", ")"),
+  "Duration"         = c("(", "S", "(", "NP", "DT", "NN", ")", "(", "VP", "VBZ", "(", "PP", "IN", "(", "NP", "DT", "NN", ")", ")", ")", "(", ".", ".", ")"),
+  "Duration + Text"  = c("(", "S", "(", "NP", "DT", "NNS", ")", "(", "VP", "VBD", "(", "PP", "IN", "(", "NP", "DT", "NN", ")", ")", ")", "(", ".", ".", ")")
+)
+
+entropy_values <- list(
+  "Autoregressive"   = runif(length(generated_parses$Autoregressive), min = 2.0, max = 3.5),
+  "Duration"         = runif(length(generated_parses$Duration), min = 0.8, max = 1.5),
+  "Duration + Text"  = runif(length(generated_parses$`Duration + Text`), min = 0.1, max = 0.4)
+)
+
+# -------------------------------
+# Pad sequences to max length
+# -------------------------------
+max_len <- max(sapply(generated_parses, length))
+
+pad_seq <- function(seq, pad_value = NA) {
+  c(seq, rep(pad_value, max_len - length(seq)))
+}
+
+# Apply padding
+parsed_tokens_padded <- lapply(generated_parses, pad_seq)
+entropy_padded <- lapply(entropy_values, pad_seq)
+
+# -------------------------------
+# Build long-format data frame
+# -------------------------------
+df_token <- data.frame(
+  context = rep(names(parsed_tokens_padded), each = max_len),
+  token_index = rep(seq_len(max_len), times = length(parsed_tokens_padded)),
+  token = unlist(parsed_tokens_padded),
+  entropy = unlist(entropy_padded)
+)
+
+df_token$context <- factor(df_token$context, levels = c("Autoregressive", "Duration", "Duration + Text"))
+
+# -------------------------------
+# Heatmap
+# -------------------------------
+plot2 <- ggplot(df_token, aes(x = token_index, y = context, fill = entropy)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = token), color = "black", size = 3, na.rm = TRUE) +
+  scale_fill_gradient(low = "white", high = "steelblue", na.value = "grey90") +
+  theme_minimal(base_size = 14) +
+  labs(
+    x = "Token position",
+    y = "Context",
+    fill = "Entropy (nats)",
+    title = "Token-level entropy heatmap across contexts",
+    subtitle = "The dog walked in the park."
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)
+  )
+
+ggsave("heatmap.pdf", plot2, width = 9, height = 6, dpi = 300)
+
+```
+
+
+
