@@ -86,9 +86,6 @@ def infer_example(
     if prosody_mask is not None:
         prosody_mask = prosody_mask.to(device)
 
-    if not hasattr(model.word_encoder, "embed_tokens") or model.word_encoder.embed_tokens is None:
-        model.word_encoder.embed_tokens = model.shared
-
     with torch.no_grad():
         out = model.forward(
             input_ids=input_ids,
@@ -169,7 +166,6 @@ def eval_model():
 
     checkpoint_path = "/home/jm3743/prosody-syntax-interface/outputs/text/model/checkpoint-2460"
     tokenizer, model = load_model(checkpoint_path)
-    model.word_encoder.embed_tokens = model.shared
 
     print("Preprocessing...")
     preprocess_fn = lambda ex: preprocess(tokenizer, ex, 256, 256)

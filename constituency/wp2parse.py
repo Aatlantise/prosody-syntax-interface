@@ -24,12 +24,9 @@ def main(args):
     print(f"Loaded {len(items)} examples.")
 
     ds = Dataset.from_list(items)
-    # ds = ds.train_test_split(test_size=args.validation_split, seed=42)
-    # train_ds = ds["train"]
-    # eval_ds = ds["test"]
-    # make them same for debugging for now
-    train_ds = ds
-    eval_ds = ds
+    ds = ds.train_test_split(test_size=args.validation_split, seed=42)
+    train_ds = ds["train"]
+    eval_ds = ds["test"]
 
     print("Loading tokenizer...")
     tokenizer = get_tokenizer()
@@ -54,11 +51,15 @@ def main(args):
     model = DualEncoderT5(config)
     model.tokenizer = tokenizer
 
-    # Load pretrained weights
-    missing, unexpected = model.encoder.load_state_dict(base.encoder.state_dict(), strict=False)
+    # Load pretrained weights to only the encoder and shared (to be used as encoder embedding layer)
+    print("Loading  weights...")
+    missing, unexpected = model.load_state_dict(base.state_dict(), strict=False)
 
     print("Missing keys:", missing)
     print("Unexpected keys:", unexpected)
+
+    print("Re-initializing decoder layer, to be trained from scratch")
+    model.decoder.init_weights()
 
     model.to(args.device)
 
@@ -130,8 +131,6 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action="store_true", default=False)
     args = parser.parse_args()
 
-    args.use_text = True
-    args.debug = True
 
     feats = []
     if args.use_zeros:

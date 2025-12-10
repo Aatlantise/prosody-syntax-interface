@@ -255,11 +255,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
         self.fusion_layer_norm = nn.LayerNorm(config.d_model)
         self.fusion_dropout = nn.Dropout(config.dropout_rate)
 
-        # --- DECODER: random (from-config)  ---
-        # LM head tied to decoder embedding (weight tying)
-        self.lm_head = nn.Linear(config.d_model, config.vocab_size, bias=False)
-        # tie weights
-        self.lm_head.weight = self.decoder_embed.weight
+        self.init_weights()
 
     # ---------------------------
     # Utility: compute key padding mask for nn.MultiheadAttention
@@ -353,7 +349,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
             # We can use HF T5 shift method if present; otherwise implement a simple shift_right
             decoder_input_ids = self._shift_right_t5(labels)
 
-        # T5Stack decoder expects input_ids or inputs_embeds and encoder_hidden_states
+        # T5Stack decoder expects decoder_input_ids or inputs_embeds and encoder_hidden_states
         decoder_outputs = self.decoder(
             input_ids=decoder_input_ids,
             encoder_hidden_states=fused,
@@ -367,7 +363,7 @@ class DualEncoderT5(T5ForConditionalGeneration):
         logits = self.lm_head(dec_hidden)
 
         # logits: (batch, seq_len, vocab_size)
-        debug = True
+        debug = False
         if debug:
             token_ids = torch.argmax(logits, dim=-1)  # (batch, seq_len)
             decoded = self.tokenizer.batch_decode(token_ids, skip_special_tokens=True)
