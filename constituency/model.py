@@ -363,8 +363,19 @@ class DualEncoderT5(T5ForConditionalGeneration):
         logits = self.lm_head(dec_hidden)
 
         # logits: (batch, seq_len, vocab_size)
+        # todo: update when debugging
         debug = False
         if debug:
+            print("\n")
+
+            if input_ids is not None:
+                input_str = self.tokenizer.batch_decode(input_ids, skip_special_tokens=True)
+                print(input_str[0])
+
+            first = labels[0]
+            silver_label = self.tokenizer.decode(first[first != -100], skip_special_tokens=True)
+            print(silver_label)
+
             token_ids = torch.argmax(logits, dim=-1)  # (batch, seq_len)
             decoded = self.tokenizer.batch_decode(token_ids, skip_special_tokens=True)
             print(decoded[0])

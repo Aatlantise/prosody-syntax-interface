@@ -7,7 +7,7 @@ from torch.nn.utils.rnn import pad_sequence
 from constituency.util import load_jsonl_data, preprocess
 from datasets import Dataset
 from transformers import (
-    Seq2SeqTrainer, Seq2SeqTrainingArguments,
+    Seq2SeqTrainer, Seq2SeqTrainingArguments, GPT2LMHeadModel
 )
 
 def load_model(checkpoint_path, model_class=DualEncoderT5, device="cuda"):
@@ -156,16 +156,13 @@ def run_inference_example(model_path, model_class, parse, text=None, prosody=Non
     print("Token entropies:", result["token_entropies"])
     return result
 
-def eval_model():
+def eval_model(checkpoint_path, model_class):
     items = load_jsonl_data(debug=True)
     print(f"Loaded {len(items)} examples.")
 
-    ds = Dataset.from_list(items)
-    ds = ds.train_test_split(test_size=1, seed=42)
-    eval_ds = ds["test"]
+    eval_ds = Dataset.from_list(items)
 
-    checkpoint_path = "/home/jm3743/prosody-syntax-interface/outputs/text/model/checkpoint-2460"
-    tokenizer, model = load_model(checkpoint_path)
+    tokenizer, model = load_model(checkpoint_path, model_class=model_class)
 
     print("Preprocessing...")
     preprocess_fn = lambda ex: preprocess(tokenizer, ex, 256, 256)
@@ -180,6 +177,7 @@ def eval_model():
 
     training_args = Seq2SeqTrainingArguments(
         per_device_eval_batch_size=16,
+        per_device_train_batch_size=16,
         save_total_limit=3,
         weight_decay=0.01,
         remove_unused_columns=False,
@@ -198,25 +196,27 @@ def eval_model():
     )
     trainer.model.floating_point_ops = lambda _: 0 # allow input_ids = None
 
-    # print("Training...")
-    # trainer.train()
-    # trainer.save_model(str(outdir / "model_final"))
-
     print("Evaluating...")
     eval_res = trainer.evaluate()
     print("Eval loss (nats/token):", eval_res["eval_loss"])
 
 
 def main():
+    model_path = "/home/jm3743/prosody-syntax-interface/outputs/parse_lm/model_final",
+    model_class = GPT2LMHeadModel,
+    # text = "She spoils the look of the room.",
+    # parse = "(ROOT (S (NP (PRP She)) (VP (VBZ spoils) (NP (NP (DT the) (NN look)) (PP (IN of) (NP (DT the) (NN room))))) (. .)))",
+    # prosody = [0.00, 0.03, 0.07, 0.40, 0.02, 0.05]  # example pause duration
     result = run_inference_example(
-        model_path="/home/jm3743/prosody-syntax-interface/outputs/text/model/checkpoint-2460",
-        model_class=DualEncoderT5,
-        text="She spoils the look of the room.",
-        parse="(ROOT (S (NP (PRP She)) (VP (VBZ spoils) (NP (NP (DT the) (NN look)) (PP (IN of) (NP (DT the) (NN room))))) (. .)))",
-        # prosody=None,
-        prosody=[0.00, 0.03, 0.07, 0.40, 0.02, 0.05]  # example pause duration
+        model_path=model_path,
+        model_class=model_class,
+        text=text,
+        parse=parse,
+        prosody=prosody
     )
 
 if __name__ == "__main__":
-    # eval_model()
-    main()
+    model_class = GPT2LMHeadModel
+    checkpoint_path = "/home/jm3743/prosody-syntax-interface/outputs/zero_text/model_final"
+    eval_model(checkpoint_path, model_class=model_class)
+    # main()
