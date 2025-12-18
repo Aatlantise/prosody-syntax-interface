@@ -9,13 +9,14 @@ from datasets import Dataset
 from transformers import (
     Seq2SeqTrainer, Seq2SeqTrainingArguments, GPT2LMHeadModel
 )
+from wp2parse import get_tokenizer
 
 def load_model(checkpoint_path, model_class=DualEncoderT5, device="cuda"):
     """
     Loads the model and tokenizer from a checkpoint.
     model_class should be your custom class, e.g. ProsodyT5ForConditionalGeneration.
     """
-    tokenizer = AutoTokenizer.from_pretrained(checkpoint_path)
+    tokenizer = get_tokenizer()
     model = model_class.from_pretrained(checkpoint_path, ignore_mismatched_sizes=False)
     model = model.to(device)
     model.tokenizer = tokenizer
@@ -56,14 +57,16 @@ def infer_example(
         ).to(device)
         input_ids = enc["input_ids"]
         attention_mask = enc["attention_mask"]
+        input_ids = pad_sequence(input_ids, batch_first=True, padding_value=tokenizer.pad_token_id)
+        attention_mask = pad_sequence(attention_mask, batch_first=True, padding_value=0)
     else:
-        input_ids = torch.tensor([[tokenizer.pad_token_id]], device=device)
-        attention_mask = torch.tensor([[1]], device=device)
+        input_ids = None
+        attention_mask = None
 
     labels = None
     if parse is not None:
         parse_enc = tokenizer(
-            text,
+            parse,
             return_tensors="pt",
             padding=False,
             truncation=True
@@ -71,9 +74,6 @@ def infer_example(
         labels = parse_enc["input_ids"]
     else:
         raise ValueError("Please pass parse to calculate entropy.")
-
-    input_ids = pad_sequence(input_ids, batch_first=True, padding_value=tokenizer.pad_token_id)
-    attention_mask = pad_sequence(attention_mask, batch_first=True, padding_value=0)
 
     # -------------------------
     # 2. Move prosody to device
@@ -131,7 +131,7 @@ def infer_example(
     }
 
 def run_inference_example(model_path, model_class, parse, text=None, prosody=None):
-    tokenizer, model = load_model(model_path, model_class)
+    tokenizer, model = load_model(model_path, model_class=model_class)
 
     # prosody: e.g. numpy array [T, 1]
     if prosody is not None:
@@ -201,12 +201,22 @@ def eval_model(checkpoint_path, model_class):
     print("Eval loss (nats/token):", eval_res["eval_loss"])
 
 
-def main():
-    model_path = "/home/jm3743/prosody-syntax-interface/outputs/parse_lm/model_final",
-    model_class = GPT2LMHeadModel,
-    # text = "She spoils the look of the room.",
-    # parse = "(ROOT (S (NP (PRP She)) (VP (VBZ spoils) (NP (NP (DT the) (NN look)) (PP (IN of) (NP (DT the) (NN room))))) (. .)))",
-    # prosody = [0.00, 0.03, 0.07, 0.40, 0.02, 0.05]  # example pause duration
+def main(mode):
+    model_path = f"/home/jm3743/prosody-syntax-interface/outputs/{mode}/model_final"
+    model_class = DualEncoderT5
+    if 'text' in mode:
+        text = "She spoils the room."
+    else:
+        text = None
+    parse = "(ROOT (S (NP PRP) (VP VBZ (NP DT NN)) .))"
+    pause = [0.0, 0.0, 0.0, 0.03]
+    duration = [0.1, 0.62, 0.11, 0.47]
+    if 'pause' in mode:
+        prosody = pause
+    elif 'duration' in mode:
+        prosody = duration
+    else:
+        prosody = None
     result = run_inference_example(
         model_path=model_path,
         model_class=model_class,
@@ -216,7 +226,11 @@ def main():
     )
 
 if __name__ == "__main__":
-    model_class = GPT2LMHeadModel
-    checkpoint_path = "/home/jm3743/prosody-syntax-interface/outputs/zero_text/model_final"
-    eval_model(checkpoint_path, model_class=model_class)
-    # main()
+    # model_class = GPT2LMHeadModel
+    # checkpoint_path = "/home/jm3743/prosody-syntax-interface/outputs/parse_lm/model_final"
+    # eval_model(checkpoint_path, model_class=model_class)
+    main("pause")
+    main("duration")
+    main("text")
+    main("pause_text")
+    main("duration_text")
