@@ -109,12 +109,9 @@ def main(args):
 
     # --- Cross-Validation Loop ---
     # This loop will run K times, once for each fold
-    all_fold_metrics = []
 
+    all_fold_metrics = []
     for fold, (train_index, eval_index) in enumerate(kf.split(full_indices)):
-        all_fold_metrics.extend([0.7788, 0.8108, 0.8031, 0.7871])
-        if fold < 4:
-            continue
         print(f"\n--- Starting Fold {fold + 1}/{k} ---")
 
         # 1. Create Train and Evaluation Datasets for the current fold
@@ -137,14 +134,18 @@ def main(args):
         tokenized_train = train_ds.map(preprocess_fn, batched=True, remove_columns=train_ds.column_names)
         tokenized_eval = eval_ds.map(preprocess_fn, batched=True, remove_columns=eval_ds.column_names)
 
+        per_seq_len = sum([len([t for t in ex if t != -100]) for ex in tokenized_eval['labels']]) / len(tokenized_eval['labels'])
+        print(f"Token length per parse sequence: {per_seq_len:.4f}")
+
         # 3. Model Training and Evaluation (Your next steps)
         # --- YOUR TRAINING/EVALUATION CODE GOES HERE ---
         fold_res = single_run(args, tokenizer, tokenized_train, tokenized_eval)
         fold_eval_loss = fold_res['eval_loss']
 
-        print(f"Fold {fold + 1} Evaluation Metric (Entropy/Loss): {fold_eval_loss:.4f}")
+        print(f"Fold {fold + 1} Evaluation per token: {fold_eval_loss:.4f}")
+        print(f"Fold {fold + 1} Entropy per sequence: {fold_eval_loss * per_seq_len:.4f}")
 
-        all_fold_metrics.append(fold_eval_loss)
+        all_fold_metrics.append(fold_eval_loss * per_seq_len)
 
     # --- Final Results ---
     import numpy as np
