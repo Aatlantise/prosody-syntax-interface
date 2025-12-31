@@ -27,12 +27,12 @@ library(ggbreak)
 
 df <- data.frame(
   condition = c(
-    "Autoreg. parse",
-    "Pause",
-    "Duration",
-    "Text",
-    "Pause + Text",
-    "Duration + Text"
+    "H(S)\nAutoreg. parse",
+    "H(S|pause)\nPause",
+    "H(S|dur)\nDuration",
+    "H(S|W)\nText",
+    "H(S|W,pause)\nPause + Text",
+    "H(S|W,dur)\nDuration + Text"
   ),
   nats_seq = c(61.39,59.87,58.40,15.91,15.84,16.59
 ),
@@ -97,7 +97,7 @@ plot1 <- ggplot(df, aes(x = condition, y = nats_seq)) +
 
 plot1
 
-ggsave("bar.pdf", plot1, width = 8, height = 6, dpi = 300)
+ggsave("bar.pdf", plot1, width = 8, height = 5, dpi = 300)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
@@ -187,7 +187,7 @@ plot2 <- ggplot(df, aes(x = token, y = surprisal, color = model)) +
     x = "Linearized parse tokens",
     y = "Surprisal (nats)",
     title = "Token-level surprisal for syntactic parse prediction",
-    subtitle = "Sentence: She spoils the room.",
+    subtitle = "Sentence = She spoils the room.\nPause = [0.0, 0.0, 0.0, 0.03]; Duration = [0.1, 0.62, 0.11, 0.47]",
     color = "Input modality"
   ) +
   theme_bw(base_size = 12) +
@@ -201,7 +201,7 @@ plot2 <- ggplot(df, aes(x = token, y = surprisal, color = model)) +
     axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
   )
 
-ggsave("line.pdf", plot2, width = 8, height = 6, dpi = 300)
+ggsave("line.pdf", plot2, width = 8, height = 4, dpi = 300)
 ```
 
 
