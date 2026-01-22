@@ -8,12 +8,80 @@ from transformers import (
 from constituency.util import TokenizerBuilder, load_jsonl_data, preprocess
 from constituency.model import DualEncoderT5, DualEncoderCollator
 from sklearn.model_selection import KFold
+import torch
+from torch.utils.data import DataLoader
+import pandas as pd
 
 
 def get_tokenizer():
     builder = TokenizerBuilder("t5-base")
     tokenizer = builder.build_tokenizer()
     return tokenizer
+
+
+def compute_sequence_surprisals(model, tokenizer, dataset, collator, batch_size, device):
+    """
+    Computes the total surprisal (sum of NLL) for each sequence in the dataset.
+    Returns a list of float values.
+    """
+    model.eval()
+    loader = DataLoader(dataset, batch_size=batch_size, collate_fn=collator)
+    surprisals = []
+
+    loss_fct = torch.nn.CrossEntropyLoss(ignore_index=-100, reduction='none')
+
+    with torch.no_grad():
+        for batch in loader:
+            # Move batch to device
+
+            input_ids = batch["input_ids"].to(device) if batch["input_ids"] else None
+            labels = batch["labels"].to(device)
+
+            # Forward pass
+            # Note: T5ForConditionalGeneration automatically shifts labels for decoding
+            # but we need to check if your DualEncoderT5 does the same.
+            # Assuming it inherits or behaves like T5:
+            outputs = model(input_ids=input_ids, labels=labels)
+            logits = outputs.logits
+
+            # T5 Standard Loss Calculation Logic (Simulated with reduction='none')
+            # Reshape logits to [Batch * Seq_Len, Vocab] and labels to [Batch * Seq_Len]
+            # But to keep per-sequence sum, we work with [Batch, Seq_Len, Vocab]
+
+            # Check dimensions match
+            # Logits: [B, Seq_Len, Vocab], Labels: [B, Seq_Len]
+            shift_logits = logits[..., :-1, :].contiguous()
+            shift_labels = labels[..., 1:].contiguous()
+
+            # NOTE: T5 usually handles the shifting internally in the forward pass
+            # and returns loss. However, since we need unreduced loss,
+            # and 'outputs.loss' is already a mean scalar, we must recalculate
+            # using outputs.logits.
+
+            # Standard T5 behavior: it doesn't shift inside forward() for loss calculation
+            # if we look at the source, but it depends on your DualEncoderT5 implementation.
+            # SAFE BET: Calculate CrossEntropy on the full logits/labels provided.
+            # If your model shifts internally, use logits/labels as is.
+            # If it's standard T5, the labels are already aligned with logits.
+
+            B, L, V = logits.shape
+
+            # Flatten batch for CrossEntropy, then reshape back
+            flat_logits = logits.view(-1, V)
+            flat_labels = labels.view(-1)
+
+            per_token_loss = loss_fct(flat_logits, flat_labels)
+
+            # Reshape back to [Batch, Seq_Len]
+            per_token_loss = per_token_loss.view(B, L)
+
+            # Sum loss per sequence (masking is handled by ignore_index=-100 in loss_fct)
+            # This gives total surprisal (nats) for the sequence
+            seq_surprisal = per_token_loss.sum(dim=1)
+
+            surprisals.extend(seq_surprisal.cpu().tolist())
+
+    return surprisals
 
 def single_run(args, tokenizer, tokenized_train, tokenized_eval):
     outdir = Path(args.outdir)
@@ -89,14 +157,27 @@ def single_run(args, tokenizer, tokenized_train, tokenized_eval):
     trainer.train()
     trainer.save_model(str(outdir / "model_final"))
 
-    print("Evaluating...")
-    eval_res = trainer.evaluate()
-    print("Eval loss (nats/token):", eval_res["eval_loss"])
+    print("Evaluating (Mean Loss)...")
+    eval_res = trainer.evaluate()  # Keep this for quick sanity check
 
-    return eval_res
+    print("Calculating per-sequence surprisals...")
+    # Use the helper function here
+    # Ensure you pass the model from the trainer (it might be wrapped in DDP/DataParallel)
+    model_to_use = trainer.model.module if hasattr(trainer.model, 'module') else trainer.model
+
+    seq_surprisals = compute_sequence_surprisals(
+        model=model_to_use,
+        tokenizer=tokenizer,
+        dataset=tokenized_eval,
+        collator=collator,
+        batch_size=args.batch_size,
+        device=args.device
+    )
+
+    return eval_res, seq_surprisals
 
 def main(args):
-    k = 5
+    k = 10
     kf = KFold(n_splits=k, shuffle=True, random_state=42)
 
     print("Loading data...")
@@ -110,7 +191,8 @@ def main(args):
     # --- Cross-Validation Loop ---
     # This loop will run K times, once for each fold
 
-    all_fold_metrics = []
+    all_results = []
+    all_fold_level_metrics = []
     for fold, (train_index, eval_index) in enumerate(kf.split(full_indices)):
         print(f"\n--- Starting Fold {fold + 1}/{k} ---")
 
@@ -139,23 +221,51 @@ def main(args):
 
         # 3. Model Training and Evaluation (Your next steps)
         # --- YOUR TRAINING/EVALUATION CODE GOES HERE ---
-        fold_res = single_run(args, tokenizer, tokenized_train, tokenized_eval)
-        fold_eval_loss = fold_res['eval_loss']
+        eval_metrics, surprisals = single_run(args, tokenizer, tokenized_train, tokenized_eval)
 
+        # 4. Store Results
+        # We zip the specific indices used in this evaluation fold with their scores
+        # 'eval_index' is the numpy array of original indices from the full dataset
+        for orig_idx, score in zip(eval_index, surprisals):
+            all_results.append({
+                "original_index": int(orig_idx),
+                "fold": fold + 1,
+                "surprisal": score,
+                # Optional: Add metadata from items if useful
+                # "length": len(items[orig_idx]['text'].split())
+            })
+
+        fold_eval_loss = eval_metrics['eval_loss']
         print(f"Fold {fold + 1} Evaluation per token: {fold_eval_loss:.4f}")
         print(f"Fold {fold + 1} Entropy per sequence: {fold_eval_loss * per_seq_len:.4f}")
+        all_fold_level_metrics.append(fold_eval_loss * per_seq_len)
 
-        all_fold_metrics.append(fold_eval_loss * per_seq_len)
+    # --- Save Final Results ---
+    print("Saving detailed results...")
+    df = pd.DataFrame(all_results)
+
+    # Sort by original index to look neat (optional)
+    df = df.sort_values(by=["original_index", "fold"])
+
+    # Save to CSV
+    save_path = Path(args.outdir) / "cross_validation_results.csv"
+    df.to_csv(save_path, index=False)
+    print(f"Saved per-sequence surprisals to {save_path}")
+
+    # Calculate aggregate stats from the dataframe
+    mean_surprisal = df["surprisal"].mean()
+    print(f"Global Mean Surprisal: {mean_surprisal:.4f}")
 
     # --- Final Results ---
     import numpy as np
-    final_mean = np.mean(all_fold_metrics)
-    final_std = np.std(all_fold_metrics)
+    final_mean = np.mean(all_fold_level_metrics)
+    final_std = np.std(all_fold_level_metrics)
 
     print("\n--- Cross-Validation Results ---")
-    print(f"Individual Fold Metrics: {all_fold_metrics}")
+    print(f"Individual Fold Metrics: {all_fold_level_metrics}")
     print(f"Mean Metric (Entropy/Loss): {final_mean:.4f}")
-    print(f"Standard Deviation (Variance Measure): {final_std:.4f}")
+    print(f"Standard Deviation: {final_std:.4f}")
+    print(f"Variance: {final_std**2:.4f}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

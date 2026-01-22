@@ -1,5 +1,5 @@
 from transformers import AutoTokenizer, AutoModel, AutoConfig
-from model import DualEncoderT5, DualEncoderCollator
+from constituency.model import DualEncoderT5, DualEncoderCollator
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -9,7 +9,7 @@ from datasets import Dataset
 from transformers import (
     Seq2SeqTrainer, Seq2SeqTrainingArguments, GPT2LMHeadModel
 )
-from wp2parse import get_tokenizer
+from constituency.wp2parse import get_tokenizer
 
 def load_model(checkpoint_path, model_class=DualEncoderT5, device="cuda"):
     """
