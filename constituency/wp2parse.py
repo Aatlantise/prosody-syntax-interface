@@ -34,7 +34,7 @@ def compute_sequence_surprisals(model, tokenizer, dataset, collator, batch_size,
         for batch in loader:
             # Move batch to device
 
-            input_ids = batch["input_ids"].to(device) if batch["input_ids"] else None
+            input_ids = batch["input_ids"].to(device) if batch["input_ids"] is not None else None
             labels = batch["labels"].to(device)
 
             # Forward pass
