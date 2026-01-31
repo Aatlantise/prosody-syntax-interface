@@ -5,7 +5,7 @@ from tqdm import tqdm
 import stanza
 import re
 from transformers import GPT2TokenizerFast, T5TokenizerFast
-from constituency.data import load_data, extract_examples_from_sent
+from constituency.data import load_data, extract_examples_from_sent, load_celex_syllables
 
 
 class ParseTokenizer:
@@ -195,8 +195,7 @@ class CorpusBuilder:
         # --- CONFIG ---
         self.root_dir = os.path.expanduser('/home/jm3743/data/LibriTTS')
         self.splits = ['train-clean-100', 'dev-clean', 'test-clean']
-        self.output_path = os.path.expanduser('/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json')
-        self.output_with_prosody_path = os.path.expanduser('/home/jm3743/prosody-syntax-interface/data/constituency_corpus_prosody.json')
+        self.output_path = os.path.expanduser('/home/jm3743/prosody-syntax-interface/data/constituency_corpus_reldur.json')
         self.batch_size = 64  # tune based on GPU memory and sentence length
 
         # --- SETUP ---
@@ -209,7 +208,6 @@ class CorpusBuilder:
             use_gpu=True
         )
 
-    # --- HELPER ---
     def chunks(self, lst, n):
         """Yield successive n-sized chunks from lst."""
         for i in range(0, len(lst), n):
@@ -231,6 +229,7 @@ class CorpusBuilder:
 
 
     def __call__(self):
+        syll_map = load_celex_syllables()
         with open(self.output_path, 'w', encoding='utf-8') as out_f:
             for split in self.splits:
                 files = glob.glob(os.path.join(self.root_dir, split, '*', '*', '*.original.txt'))
@@ -248,7 +247,7 @@ class CorpusBuilder:
 
                                 prosody_path = file_path.replace("LibriTTS/", "LibriTTSLabel/lab/word/").replace("original.txt", "lab")
                                 prosody_df = load_data(prosody_path)
-                                prosody_dict, _, _ = extract_examples_from_sent(prosody_df)
+                                prosody_dict, _, _ = extract_examples_from_sent(prosody_df, syll_map)
                                 _1 = text
                                 _2 = ' '.join([w['text'] for w in prosody_dict])
                                 metadata.append({
@@ -257,6 +256,7 @@ class CorpusBuilder:
                                     "text": text,
                                     "pause": [w['pause'] for w in prosody_dict],
                                     "duration": [w['duration'] for w in prosody_dict],
+                                    "rel_dur": [w['rel_dur'] for w in prosody_dict],
                                 })
 
                         except Exception as e:
