@@ -54,6 +54,8 @@ def count_syllables_heuristic(word):
     # Remove trailing 'e' (likely silent)
     if word.endswith('e'):
         word = word[:-1]
+    elif word.endswith('ed'):
+        word = word[:-2]
     # Count vowel groups (e.g., "oa" in "boat" counts as 1)
     vowels = re.findall(r'[aeiouy]+', word)
     return max(1, len(vowels))

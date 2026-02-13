@@ -11,4 +11,5 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python -m src.helsinki_labels
+#python -m src.helsinki_labels
+python -m constituency.util > data.log

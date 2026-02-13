@@ -191,12 +191,16 @@ class TokenizerBuilder:
 
 
 class CorpusBuilder:
-    def __init__(self):
-        # --- CONFIG ---
+    def __init__(self, debug=False):
         self.root_dir = os.path.expanduser('/home/jm3743/data/LibriTTS')
         self.splits = ['train-clean-100', 'dev-clean', 'test-clean']
-        self.output_path = os.path.expanduser('/home/jm3743/prosody-syntax-interface/data/constituency_corpus_reldur.json')
+        if debug:
+            output_path = '/home/jm3743/prosody-syntax-interface/data/temp.json'
+        else:
+            output_path = '/home/jm3743/prosody-syntax-interface/data/constituency_corpus_reldur.json'
+        self.output_path = os.path.expanduser(output_path)
         self.batch_size = 64  # tune based on GPU memory and sentence length
+        self.debug = debug
 
         # --- SETUP ---
         os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
@@ -230,6 +234,8 @@ class CorpusBuilder:
 
     def __call__(self):
         syll_map = load_celex_syllables()
+        repairs = []
+        unk_errors = 0
         with open(self.output_path, 'w', encoding='utf-8') as out_f:
             for split in self.splits:
                 files = glob.glob(os.path.join(self.root_dir, split, '*', '*', '*.original.txt'))
@@ -239,6 +245,7 @@ class CorpusBuilder:
                     texts = []
                     metadata = []
 
+
                     for file_path in batch_files:
                         try:
                             text = open(file_path, encoding='utf-8').read().strip()
@@ -247,9 +254,61 @@ class CorpusBuilder:
 
                                 prosody_path = file_path.replace("LibriTTS/", "LibriTTSLabel/lab/word/").replace("original.txt", "lab")
                                 prosody_df = load_data(prosody_path)
+
+
+                                transcription_text = [q for q in list(prosody_df["token"])]
+                                if '<unk>' in transcription_text:
+                                    lowercase_text = [word.lower() for word in
+                                                      re.split(
+                                                          r'\W+',
+                                                          text.replace("'","").replace(".org","dotorg"))
+                                                      if word]
+                                    a = len(lowercase_text)
+                                    b = len(transcription_text)
+                                    # length must be same--allow wiggle room for numeric (e.g. 1880 becomes eighteen eighty)
+                                    assert a - len([q for q in transcription_text if q]) <= len([q for q in lowercase_text if q.isnumeric()])
+
+                                    recovered_text = []
+                                    j = 0
+                                    i = 0
+                                    unk_fixes = []
+                                    while i < b:
+                                        t = transcription_text[i]
+                                        if t == '<unk>':
+                                            # replace unk token with lowercased original text
+                                            l = lowercase_text[j]
+                                            recovered_text.append(l)
+                                            unk_fixes.append(l)
+                                            i += 1
+                                            j += 1
+                                        elif t == '':
+                                            # pause entry, add blank and move to next trascription token
+                                            recovered_text.append(t)
+                                            i += 1
+                                        elif t == 'eighteen' and transcription_text[i + 1] == 'eighty':
+                                            # transcription is eighteen eighty; text is 1880 (one word)
+                                            # add
+                                            recovered_text.append(t)
+                                            recovered_text.append('eighty')
+                                            i += 2
+                                            j += 1
+
+                                        else:
+                                            # transcription token is valid
+                                            recovered_text.append(t)
+                                            i += 1
+                                            j += 1
+
+                                    prosody_df["token"] = recovered_text
+                                    repairs.append({
+                                        "recovered": recovered_text,
+                                        "transcript": transcription_text,
+                                        "ref": text,
+                                        "fixes": unk_fixes,
+                                    })
+
                                 prosody_dict, _, _ = extract_examples_from_sent(prosody_df, syll_map)
-                                _1 = text
-                                _2 = ' '.join([w['text'] for w in prosody_dict])
+
                                 metadata.append({
                                     "split": split,
                                     "file": file_path,
@@ -259,12 +318,15 @@ class CorpusBuilder:
                                     "rel_dur": [w['rel_dur'] for w in prosody_dict],
                                 })
 
-                        except Exception as e:
+                        except (FileNotFoundError, IndexError, AssertionError) as e:
                             print(f"Error reading {file_path}: {e}")
+                            unk_errors += 1
+
 
                     if not texts:
                         continue
 
+                    parse_errors = 0
                     try:
                         # Batch process
                         docs = self.nlp("\n\n".join(texts))  # Stanza treats blank lines as sentence breaks
@@ -286,6 +348,14 @@ class CorpusBuilder:
 
                     except Exception as e:
                         print(f"Error parsing batch: {e}")
+                        parse_errors += 1
+
+                if self.debug:
+                    break
+
+        print(f"Unk errors: {unk_errors}, parse errors: {parse_errors}")
+        with open("data/unk_fixes.json", "w", encoding="utf-8") as f:
+            json.dump(repairs, f, ensure_ascii=False, indent=4)
 
 
 def tokenizer_test():
@@ -296,8 +366,8 @@ def tokenizer_test():
                            " (ADVP RB . CC (S (NP PRP) (VP VBZ (VP VBN (PRT RP)))))) .))")
     print([tokenizer.decode(k) for k in tokens["input_ids"]])
 
-def corpus_test():
-    corpus = CorpusBuilder()
+def corpus_test(debug=False):
+    corpus = CorpusBuilder(debug=debug)
     corpus()
 
 
@@ -312,7 +382,7 @@ def load_jsonl_data(path="/home/jm3743/prosody-syntax-interface/data/constituenc
             items.append({
                 "text": obj["text"],
                 "pause": obj["pause"],
-                "duration": obj["duration"],
+                "duration": obj["rel_dur"],  # use relative duration
                 "parse": obj["parse"],
             })
             i += 1
