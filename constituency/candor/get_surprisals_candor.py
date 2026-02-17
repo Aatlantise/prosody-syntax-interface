@@ -10,7 +10,6 @@ import warnings
 from transformers import AutoConfig, AutoTokenizer
 from typing import Iterable
 from dataclasses import dataclass
-from wordsprobability import get_surprisal_per_word
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
@@ -175,9 +174,9 @@ def main():
     )
     args = parser.parse_args()
 
-    args.in_csv = "/home/jm3743/data/candor/832b10fd-545f-4001-9eb3-3804c774272e/transcription/transcript_audiophile.csv"
+    args.in_csv = "/home/jm3743/data/candor_full_media/002d68da-7738-4177-89d9-d72ae803e0e4/transcription/transcript_audiophile.csv"
     args.out_csv = "test.csv"
-    args.convo_id = "832b10fd-545f-4001-9eb3-3804c774272e"
+    args.convo_id = "002d68da-7738-4177-89d9-d72ae803e0e4"
 
     # model setup
     tokenizer = AutoTokenizer.from_pretrained(args.lm_model)

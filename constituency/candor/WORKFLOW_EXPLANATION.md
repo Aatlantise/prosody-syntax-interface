@@ -35,6 +35,9 @@ The pipeline processes conversational audio data (CANDOR dataset) to create a ri
 **Outputs**:
 - CSV with columns: `turn_id`, `turn_start`, `turn_stop`, `speaker`, `word`, `surprisal`, `window_wc`, `context_wc`
 
+**Hyun-env**: Run on prosody env
+```python -m constituency.candor.get_surprisals_candor```
+
 ---
 
 ### Stage 2: Add Audio-Visual Features
@@ -81,6 +84,10 @@ The pipeline processes conversational audio data (CANDOR dataset) to create a ri
   - `gaze_on`, `gaze_on_other`
   - `backchannel_overlap`, `backchannel_utterance`, `backchannel_offset`
   - `channel`, `transcript_name`
+
+**Hyun-env**: Run on prosody env
+```python -m constituency.candor.process_av_features_candor```
+
 
 ---
 

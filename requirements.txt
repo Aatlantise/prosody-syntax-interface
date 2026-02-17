@@ -40,6 +40,12 @@ soundfile
 pycwt
 stanza
 
+# for candor processing
+intervaltree
+sortedcontainers
+praat-parselmouth
+pydub
+
 # additional for debugging...
 
 memory_profiler
