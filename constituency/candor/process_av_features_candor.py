@@ -226,14 +226,14 @@ def align_turn_times(lookup_df: pd.DataFrame, turn_df: pd.DataFrame) -> pd.DataF
             print("turn_df:", turn_df.reset_index()[["word", "turn_start", "turn_stop"]])
 
         if not i < len(lookup_df):
-            return None
+            break
 
         lookup_w = lookup_df.word.iloc[i]
-        turn_w = str(turn_df.word.iloc[j])
+        turn_w = str(turn_df.word.iloc[j]).strip()
 
         # if the corresponding entries contain the same word
-        # need to account for the possible extra punctuation character in turn_w vs. lookup_w
-        # ex: "$15," --> "$15"
+        # need to account for preceding space and possible extra punctuation character in turn_w vs. lookup_w
+        # ex: " $15," --> "$15"
         # however the lookup may contain punctuation in certain edge cases, and it doesn't necessarily
         # ex: "£500.." --> "£500."
 
@@ -434,16 +434,20 @@ def add_word_features(args: argparse.Namespace) -> None:
 
 
 def main():
+    convo_id = "002d68da-7738-4177-89d9-d72ae803e0e4"
+    data_dir = f"/home/jm3743/data/candor_full_media/{convo_id}/"
+    root_dir = "/home/jm3743/prosody-syntax-interface"
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--transcript_json")
-    parser.add_argument("--metadata_json")
-    parser.add_argument("--surprisals_csv")
-    parser.add_argument("--turns_csv")
-    parser.add_argument("--audiophile_csv")
-    parser.add_argument("--av_features_csv")
-    parser.add_argument("--surprisals_features_csv")
-    parser.add_argument("--convo_id")
-    parser.add_argument("--sound_file")
+    parser.add_argument("--transcript_json", default=f"{data_dir}/transcription/transcribe_output.json")
+    parser.add_argument("--metadata_json", default=f"{data_dir}/metadata.json")
+    parser.add_argument("--surprisals_csv", default=f"{root_dir}/test.csv")
+    parser.add_argument("--turns_csv", default=f"{data_dir}/transcription/transcript_backbiter.csv")
+    parser.add_argument("--audiophile_csv", default=f"{data_dir}/transcription/transcript_audiophile.csv")
+    parser.add_argument("--av_features_csv", default=f"{data_dir}/audio_video_features.csv")
+    parser.add_argument("--surprisals_features_csv", default=f"{root_dir}/test2.csv")
+    parser.add_argument("--convo_id", default=convo_id)
+    parser.add_argument("--sound_file", default=f"{data_dir}/processed/{convo_id}.mp3")
     args = parser.parse_args()
     pd.set_option("display.max_rows", None)
     add_word_features(args)
