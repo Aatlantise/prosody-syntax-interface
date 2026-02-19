@@ -71,12 +71,15 @@ def token_surprisals(text: str, tokenizer, model, device="cuda"):
         add_special_tokens=True
     )
 
-    input_ids = enc["input_ids"].to(device)
+    # add BOS token to input_ids
+    input_ids = torch.cat([torch.tensor([[tokenizer.bos_token_id]]), enc["input_ids"]], dim=-1).to(device)
+
+    # offset stays as is; nothing was added here
     offsets = enc["offset_mapping"][0].tolist()
 
     outputs = model(input_ids)
-    logits = outputs.logits[:, :-1, :]          # predict next token
-    targets = input_ids[:, 1:]                  # shifted targets
+    logits = outputs.logits[:, :-1, :].contiguous()
+    targets = input_ids[:, 1:].contiguous()
 
     loss_fct = torch.nn.CrossEntropyLoss(reduction="none")
     token_loss = loss_fct(
@@ -89,7 +92,7 @@ def token_surprisals(text: str, tokenizer, model, device="cuda"):
     return {
         "token_ids": input_ids[0, 1:].tolist(),
         "token_strs": tokenizer.convert_ids_to_tokens(input_ids[0, 1:]),
-        "offsets": offsets[1:],                  # align with targets
+        "offsets": offsets,                  # align with targets
         "surprisals": token_surprisal             # torch tensor
     }
 
@@ -105,12 +108,13 @@ def word_surprisals(text, token_data):
         token_data["offsets"],
         token_data["surprisals"]
     ):
-        if start == end:  # special tokens
-            continue
 
         token_text = text[start:end]
 
-        if start == 0 or text[start - 1] == " ":
+        if start == end:  # special tokens
+            continue
+
+        if start == 0 or tok[0] == "Ġ": # gpt-2 style
             if current_word:
                 results.append((current_word, current_surprisal))
             current_word = token_text
