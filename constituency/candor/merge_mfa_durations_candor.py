@@ -1,106 +1,92 @@
-import glob
 import pandas as pd
+from pathlib import Path
 import string
+from glob import glob
 
 
-def clean(s: str) -> str:
-    return str(s).lower().strip(string.punctuation)
+def clean_word(word):
+    """Lowercases, strips whitespace, and removes punctuation for comparison."""
+    if pd.isna(word):
+        return ""
+    return str(word).strip().lower().translate(str.maketrans('', '', string.punctuation))
 
+
+def merge_mfa_timestamps(features_path, mfa_base_dir):
+    # 1. Load the main features file
+    features_df = pd.read_csv(features_path)
+
+    # 2. Initialize MFA columns with STT fallback timestamps
+    features_df['mfa_start'] = features_df['word_start']
+    features_df['mfa_stop'] = features_df['word_stop']
+
+    mfa_dir = Path(mfa_base_dir)
+    mismatched_turns = []
+    mismatched_tokens = []
+    missing_files = []
+
+    # 3. Group by transcript_name (convo_id), speaker, and turn_id
+    grouping_cols = ['transcript_name', 'speaker', 'turn_id']
+    for (convo_id, speaker_id, turn_id), turn_group in features_df.groupby(grouping_cols):
+
+        # Construct the expected MFA file path
+        # Format: mfa/speaker_id/convo_id_turn_id.csv
+        mfa_filename = f"{convo_id}_{turn_id}.csv"
+        mfa_filepath = mfa_dir / str(speaker_id) / mfa_filename
+
+        if not mfa_filepath.exists():
+            missing_files.append(mfa_filepath)
+            continue
+
+        # Load the MFA file (filtering for 'words' just in case)
+        mfa_df = pd.read_csv(mfa_filepath)
+        mfa_df = mfa_df[mfa_df['Type'] == 'words'].reset_index(drop=True)
+
+        # 4. Check if the word counts are equivalent for the turn
+        if len(turn_group) == len(mfa_df):
+            # 5. Token-by-token alignment within the matching turn
+            for idx, (f_idx, f_row) in enumerate(turn_group.iterrows()):
+                mfa_row = mfa_df.iloc[idx]
+                mfa_label = str(mfa_row['Label']).strip()
+                stt_clean = clean_word(f_row['word'])
+
+                # Check for match or <unk>
+                if mfa_label == stt_clean or mfa_label == '<unk>':
+                    features_df.at[f_idx, 'mfa_start'] = mfa_row['Begin']
+                    features_df.at[f_idx, 'mfa_stop'] = mfa_row['End']
+                else:
+                    mismatched_tokens.append({
+                        'transcript_name': convo_id,
+                        'turn_id': turn_id,
+                        'stt_word': stt_clean,
+                        'mfa_label': mfa_label
+                    })
+        else:
+            # Turn length mismatch: Flag and skip (leaves STT timestamps)
+            mismatched_turns.append({
+                'transcript_name': convo_id,
+                'turn_id': turn_id,
+                'speaker': speaker_id,
+                'features_len': len(turn_group),
+                'mfa_len': len(mfa_df)
+            })
+
+    # 6. Report on the alignment health
+    print(f"Processed {len(features_df.groupby(['transcript_name', 'turn_id']))} turns.")
+    if missing_files:
+        print(f"Warning: {len(missing_files)} MFA files were not found.")
+    if mismatched_turns:
+        print(f"Warning: {len(mismatched_turns)} turns had mismatched word counts and kept STT timings.")
+    if mismatched_tokens:
+        print(f"Warning: {len(mismatched_tokens)} individual tokens mismatched and kept STT timings.")
+
+    return features_df, mismatched_turns, mismatched_tokens
 
 if __name__ == "__main__":
+    convo_paths = glob("/home/jm3743/data/candor_full_media/*")
+    for convo_path in convo_paths:
+        convo_id = convo_path.split("/")[-1]
+        features_path = f"{convo_path}/word_level_features.csv"
+        mfa_base_dir = f"/home/jm3743/data/candor/mfa/post_alignment/{convo_id}"
 
-    ds = []
-    for filename in glob.glob("../data/candor/mfa/post_alignment/*/*/*.csv"):
-        turn_id = int(filename.split("_")[-1].replace(".csv", ""))
-        conversation_id = filename.split("/")[-3]
-        d = pd.read_csv(filename)
-        d = d[d["Type"] == "words"]
-        d["word_pos"] = list(range(len(d)))
-        d["word_count"] = len(d)
-        d["turn_id"] = turn_id
-        d["transcript_name"] = conversation_id
-        ds.append(d)
-
-    df_mfa = pd.concat(ds)
-    df_mfa = df_mfa.rename(
-        columns={
-            "Begin": "start_time_within_turn",
-            "End": "end_time_within_turn",
-            "Speaker": "speaker",
-        }
-    )
-    df_mfa = df_mfa.sort_values(
-        by=["transcript_name", "turn_id", "word_pos"], kind="stable"
-    )
-    df_mfa["duration"] = (
-        df_mfa["end_time_within_turn"] - df_mfa["start_time_within_turn"]
-    )
-
-    for i in range(0, 5):
-
-        df = pd.read_csv(
-            f"../output/candor/merged/gpt2/{i}/backbiter/candor_merged_data_gpt2_{i}_backbiter_confirm.csv",
-        )
-        df = df.rename(
-            columns={
-                "pre_word_pause": "pre_word_pause_candor",
-                "post_word_pause": "post_word_pause_candor",
-                "start_time": "start_time_candor",
-                "end_time": "end_time_candor",
-            }
-        )
-        df["word_pos"] = (
-            df.groupby(["transcript_name", "turn_id"]).cumcount().reset_index(drop=True)
-        )
-        df["word_count"] = (
-            df.groupby(["transcript_name", "turn_id"])["word"]
-            .transform("size")
-            .reset_index(drop=True)
-        )
-        print(f"Original df length: {len(df)}")
-
-        df_mrg = df.merge(
-            df_mfa,
-            on=["transcript_name", "turn_id", "word_pos"],
-            suffixes=["_candor", ""],
-            how="left",
-        )
-
-        df_mrg["start_time"] = df_mrg["start_time_within_turn"] + df_mrg.groupby(
-            ["transcript_name", "turn_id"]
-        )["start_time_candor"].transform("min")
-        df_mrg["end_time"] = df_mrg["end_time_within_turn"] + df_mrg.groupby(
-            ["transcript_name", "turn_id"]
-        )["start_time_candor"].transform("min")
-
-        df_mrg["pre_word_pause"] = (
-            df_mrg["start_time"]
-            - df_mrg.groupby("transcript_name")["end_time"].shift(1)
-        ).copy()
-        df_mrg.loc[
-            df_mrg.groupby("transcript_name").cumcount() == 0, "pre_word_pause"
-        ] = 0.0
-
-        df_mrg["post_word_pause"] = (
-            df_mrg.groupby("transcript_name")["start_time"].shift(-1)
-            - df_mrg["end_time"]
-        ).copy()
-        df_mrg["post_word_pause"] = df_mrg["post_word_pause"].fillna(0.0)
-
-        df_mrg[(df_mrg["word_count_candor"] != df_mrg["word_count"])].to_csv(
-            f"../output/candor/merged/gpt2/{i}/backbiter/candor_merged_data_gpt2_{i}_backbiter_confirm_mfa_errors.csv",
-            index=False,
-        )
-        df_mrg = df_mrg[df_mrg["word_count"] == df_mrg["word_count_candor"]]
-
-        df_mrg["discrepancy"] = (df_mrg["duration"] - df_mrg["duration_candor"]).abs()
-        print(f"Merged df length: {len(df_mrg)}")
-        df_mrg.to_csv(
-            f"../output/candor/merged/gpt2/{i}/backbiter/candor_merged_data_gpt2_{i}_backbiter_confirm_mfa.csv",
-            index=False,
-        )
-
-        print(
-            f"Context Length {i}: {df_mrg.duration.isna().sum()} NA values in MFA duration"
-        )
-        print(df_mrg["discrepancy"].describe())
+        merged_df, turn_errors, token_errors = merge_mfa_timestamps(features_path, mfa_base_dir)
+        merged_df.to_csv(f"{convo_path}/features_mfa_merged.csv", index=False)
