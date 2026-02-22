@@ -4,8 +4,8 @@ import os
 
 
 def main():
-    corpus_base = Path("../data/candor/mfa/pre_alignment")
-    outputs_base = Path("../data/candor/mfa/post_alignment")
+    corpus_base = Path("/home/jm3743/data/candor/mfa/pre_alignment")
+    outputs_base = Path("/home/jm3743/data/candor/mfa/post_alignment")
 
     os.makedirs(outputs_base, exist_ok=True)
 

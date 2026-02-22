@@ -7,6 +7,8 @@ import string
 from intervaltree import IntervalTree, Interval
 from sortedcontainers import SortedDict
 import parselmouth
+from glob import glob
+from tqdm import tqdm
 
 PUNCT = set(string.punctuation)
 
@@ -434,23 +436,25 @@ def add_word_features(args: argparse.Namespace) -> None:
 
 
 def main():
-    convo_id = "002d68da-7738-4177-89d9-d72ae803e0e4"
-    data_dir = f"/home/jm3743/data/candor_full_media/{convo_id}/"
-    root_dir = "/home/jm3743/prosody-syntax-interface"
+    paths = glob("/home/jm3743/data/candor_full_media/*/surprisal.csv")
+    for in_csv in tqdm(paths):
+        convo_id = in_csv.split("/")[-2]
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--transcript_json", default=f"{data_dir}/transcription/transcribe_output.json")
-    parser.add_argument("--metadata_json", default=f"{data_dir}/metadata.json")
-    parser.add_argument("--surprisals_csv", default=f"{root_dir}/test.csv")
-    parser.add_argument("--turns_csv", default=f"{data_dir}/transcription/transcript_backbiter.csv")
-    parser.add_argument("--audiophile_csv", default=f"{data_dir}/transcription/transcript_audiophile.csv")
-    parser.add_argument("--av_features_csv", default=f"{data_dir}/audio_video_features.csv")
-    parser.add_argument("--surprisals_features_csv", default=f"{root_dir}/test2.csv")
-    parser.add_argument("--convo_id", default=convo_id)
-    parser.add_argument("--sound_file", default=f"{data_dir}/processed/{convo_id}.mp3")
-    args = parser.parse_args()
-    pd.set_option("display.max_rows", None)
-    add_word_features(args)
+        data_dir = f"/home/jm3743/data/candor_full_media/{convo_id}/"
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--transcript_json", default=f"{data_dir}/transcription/transcribe_output.json")
+        parser.add_argument("--metadata_json", default=f"{data_dir}/metadata.json")
+        parser.add_argument("--surprisals_csv", default=in_csv)
+        parser.add_argument("--turns_csv", default=f"{data_dir}/transcription/transcript_backbiter.csv")
+        parser.add_argument("--audiophile_csv", default=f"{data_dir}/transcription/transcript_audiophile.csv")
+        parser.add_argument("--av_features_csv", default=f"{data_dir}/audio_video_features.csv")
+        parser.add_argument("--surprisals_features_csv", default=f"{data_dir}/word_level_features.csv", help="Output file")
+        parser.add_argument("--convo_id", default=convo_id)
+        parser.add_argument("--sound_file", default=f"{data_dir}/processed/{convo_id}.mp3")
+        args = parser.parse_args()
+        pd.set_option("display.max_rows", None)
+        add_word_features(args)
 
 
 if __name__ == "__main__":

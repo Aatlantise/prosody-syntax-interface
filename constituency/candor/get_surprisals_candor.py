@@ -12,6 +12,7 @@ from typing import Iterable
 from dataclasses import dataclass
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+from glob import glob
 
 CANDOR_CLIFFHANGER_COL_MAPPING = {
     "speaker": "speaker",
@@ -138,7 +139,7 @@ def compute(sentences: Iterable[str], model_name: str, b_size: int = 2) -> LMRes
 
     n_splits = len(sentences) // b_size
     words, surprisals = [], []
-    for b_sentences in tqdm(np.array_split(sentences, n_splits)):
+    for b_sentences in np.array_split(sentences, n_splits):
 
         text = "\n".join(b_sentences)
 
@@ -166,7 +167,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--in_csv")
     parser.add_argument("--out_csv")
-    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lm_model", type=str, default="gpt2")
     parser.add_argument("--turn_strategy", type=str, default="audiophile")
     parser.add_argument("--convo_id")
@@ -178,68 +179,68 @@ def main():
     )
     args = parser.parse_args()
 
-    args.in_csv = "/home/jm3743/data/candor_full_media/002d68da-7738-4177-89d9-d72ae803e0e4/transcription/transcript_audiophile.csv"
-    args.out_csv = "test.csv"
-    args.convo_id = "002d68da-7738-4177-89d9-d72ae803e0e4"
-
-    # model setup
     tokenizer = AutoTokenizer.from_pretrained(args.lm_model)
-
-    # read data and prepare it
-    df = read_candor_dataset(args.in_csv, args.turn_strategy)
-
-    df["turn_id"] = list(range(len(df)))
-    df["window_wc"] = df.text.astype(str).apply(lambda x: len(x.split()))
-
     max_tokens = AutoConfig.from_pretrained(args.lm_model).max_position_embeddings
 
-    # prepend context
-    df["context"] = ""
-    for i in range(1, args.context_len + 1):
-        df["context"] = (
-            df["text"].shift(i).fillna("") + " " + df["context"]
-        ).str.strip()
-    df["text_w_context"] = (df["context"].fillna("") + " " + df["text"]).str.strip()
-    df["context_wc"] = df.context.astype(str).apply(lambda x: len(x.split()))
+    paths = glob("/home/jm3743/data/candor_full_media/*/transcription/transcript_audiophile.csv")
+    for in_csv in tqdm(paths):
+        args.in_csv = in_csv
+        args.convo_id = in_csv.split("/")[-3]
+        args.out_csv = f"/home/jm3743/data/candor_full_media/{args.convo_id}/surprisal.csv"
 
-    # truncate
-    df["text_w_context_enc"] = df.text_w_context.apply(lambda x: tokenizer.encode(x))
-    df["text_w_context_enc"] = df.text_w_context_enc.apply(
-        lambda x: x[-(max_tokens - 2) :]
-    )
-    df["text_w_context"] = df.text_w_context_enc.apply(lambda x: tokenizer.decode(x))
+        # read data and prepare it
+        df = read_candor_dataset(args.in_csv, args.turn_strategy)
 
-    sentences = df.text_w_context.to_list()
+        df["turn_id"] = list(range(len(df)))
+        df["window_wc"] = df.text.astype(str).apply(lambda x: len(x.split()))
 
-    print(f"Computing surprisals for {len(sentences)} sentences.")
+        # prepend context
+        df["context"] = ""
+        for i in range(1, args.context_len + 1):
+            df["context"] = (
+                df["text"].shift(i).fillna("") + " " + df["context"]
+            ).str.strip()
+        df["text_w_context"] = (df["context"].fillna("") + " " + df["text"]).str.strip()
+        df["context_wc"] = df.context.astype(str).apply(lambda x: len(x.split()))
 
-    lm_result = compute(sentences, args.lm_model)
-    df["word"] = lm_result.words
-    df["surprisal"] = lm_result.surprisals
-    assert (df.surprisal.apply(len) == df.word.apply(len)).all()
+        # truncate
+        df["text_w_context_enc"] = df.text_w_context.apply(lambda x: tokenizer.encode(x))
+        df["text_w_context_enc"] = df.text_w_context_enc.apply(
+            lambda x: x[-(max_tokens - 2) :]
+        )
+        df["text_w_context"] = df.text_w_context_enc.apply(lambda x: tokenizer.decode(x))
 
-    # truncate to only contain the last window_wc items of each of the variables
-    df["word"] = list(map(lambda x, y: x[-y:], df.word, df.window_wc))
-    df["surprisal"] = list(map(lambda x, y: x[-y:], df.surprisal, df.window_wc))
+        sentences = df.text_w_context.to_list()
 
-    # explode dataframe so there's one row for each word
-    df = df.explode(["word", "surprisal"])
-    df = df.rename(columns={"start": "turn_start", "stop": "turn_stop"})
+        print(f"Computing surprisals for {len(sentences)} sentences.")
 
-    df.to_csv(
-        args.out_csv,
-        index=False,
-        columns=[
-            "turn_id",
-            "turn_start",
-            "turn_stop",
-            "speaker",
-            "window_wc",
-            "word",
-            "surprisal",
-            "context_wc",
-        ],
-    )
+        lm_result = compute(sentences, args.lm_model)
+        df["word"] = lm_result.words
+        df["surprisal"] = lm_result.surprisals
+        assert (df.surprisal.apply(len) == df.word.apply(len)).all()
+
+        # truncate to only contain the last window_wc items of each of the variables
+        df["word"] = list(map(lambda x, y: x[-y:], df.word, df.window_wc))
+        df["surprisal"] = list(map(lambda x, y: x[-y:], df.surprisal, df.window_wc))
+
+        # explode dataframe so there's one row for each word
+        df = df.explode(["word", "surprisal"])
+        df = df.rename(columns={"start": "turn_start", "stop": "turn_stop"})
+
+        df.to_csv(
+            args.out_csv,
+            index=False,
+            columns=[
+                "turn_id",
+                "turn_start",
+                "turn_stop",
+                "speaker",
+                "window_wc",
+                "word",
+                "surprisal",
+                "context_wc",
+            ],
+        )
 
 
 if __name__ == "__main__":
