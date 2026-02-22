@@ -2,7 +2,7 @@
 
 #SBATCH --job-name="candor-proc"
 #SBATCH --output="%x.o%j"
-#SBATCH --time=48:00:00
+#SBATCH --time=120:00:00
 #SBATCH --gres=gpu
 #SBATCH --mem=0
 #SBATCH --mail-user=jm3743@georgetown.edu
@@ -16,4 +16,5 @@ python -m constituency.candor.process_av_features_candor >> candor-proc.log
 deactivate
 conda activate aligner
 python -m constituency.candor.prep_for_mfa_candor >> candor-proc.log
-python -m constituency.candor.run_mfa_candor >> candor-proc.log
+bash constituency/candor/mfa.sh >> candor-proc.log
+python -m constituency.candor.merge_mfa_durations_candor >> candor-proc.log

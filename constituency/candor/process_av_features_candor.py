@@ -9,6 +9,9 @@ from sortedcontainers import SortedDict
 import parselmouth
 from glob import glob
 from tqdm import tqdm
+import traceback
+from tqdm.contrib.concurrent import process_map
+import os
 
 PUNCT = set(string.punctuation)
 
@@ -29,7 +32,7 @@ def build_time_word_lookup(
     raw_transcript_file: str, metadata_file: str
 ) -> pd.DataFrame:
 
-    print("build_time_word_lookup")
+    # print("build_time_word_lookup")
 
     with open(metadata_file) as f:
         metadata = json.load(f)
@@ -66,10 +69,10 @@ def build_time_word_lookup(
     df = df.sort_values("start_time").copy()
 
     df["pre_word_pause"] = (df["start_time"] - df["end_time"].shift(1)).copy()
-    df["pre_word_pause"].iloc[0] = 0.0
+    df.loc[df.index[0], "post_word_pause"] = 0.0
 
     df["post_word_pause"] = (df["start_time"].shift(-1) - df["end_time"]).copy()
-    df["post_word_pause"].iloc[-1] = 0.0
+    df.loc[df.index[-1], "post_word_pause"] = 0.0
 
     return df
 
@@ -92,7 +95,7 @@ def posfinitemax(a):
     return np.nan if len(a[mask]) == 0 else np.max(a[mask])
 
 
-def get_sound_features(df_surprisals, sound_file):
+def _get_sound_features(df_surprisals, sound_file):
     def get_values(d, start, end):
         # Get keys in the interval [start, end], inclusive
         keys_in_range = d.irange(start, end, inclusive=(True, True))
@@ -101,7 +104,7 @@ def get_sound_features(df_surprisals, sound_file):
         values_in_range = [d[k] for k in keys_in_range]
         return values_in_range
 
-    print("get_sound_features")
+    # print("get_sound_features")
 
     snd = parselmouth.Sound(sound_file)
 
@@ -210,7 +213,67 @@ def get_sound_features(df_surprisals, sound_file):
     return df_surprisals
 
 
-def align_turn_times(lookup_df: pd.DataFrame, turn_df: pd.DataFrame) -> pd.DataFrame:
+def get_sound_features(df_surprisals, sound_file):
+    snd = parselmouth.Sound(sound_file)
+
+    # Extract channels to raw numpy arrays
+    pitch0 = snd.extract_left_channel().to_pitch()
+    t_p0, v_p0 = pitch0.xs(), pitch0.selected_array["frequency"]
+
+    pitch1 = snd.extract_right_channel().to_pitch()
+    t_p1, v_p1 = pitch1.xs(), pitch1.selected_array["frequency"]
+
+    int0 = snd.extract_left_channel().to_intensity()
+    t_i0, v_i0 = int0.xs(), int0.values[0]
+
+    int1 = snd.extract_right_channel().to_intensity()
+    t_i1, v_i1 = int1.xs(), int1.values[0]
+
+    # Pre-extract lists for fast iteration
+    starts = df_surprisals.word_start.tolist()
+    stops = df_surprisals.word_stop.tolist()
+    channels = df_surprisals.channel.tolist()
+
+    def get_stats(t0, v0, t1, v1):
+        means, maxs, mins = [], [], []
+        for st, sp, ch in zip(starts, stops, channels):
+            if pd.isna(st) or pd.isna(sp):
+                means.append(np.nan);
+                maxs.append(np.nan);
+                mins.append(np.nan)
+                continue
+
+            t, v = (t0, v0) if ch == 0 else (t1, v1)
+            # Find array indices using fast binary search
+            idx_start = np.searchsorted(t, st)
+            idx_stop = np.searchsorted(t, sp, side='right')
+
+            slice_v = v[idx_start:idx_stop]
+            mask = np.isfinite(slice_v) & (slice_v > 0)
+            valid_v = slice_v[mask]
+
+            if len(valid_v) == 0:
+                means.append(np.nan);
+                maxs.append(np.nan);
+                mins.append(np.nan)
+            else:
+                means.append(np.mean(valid_v))
+                maxs.append(np.max(valid_v))
+                mins.append(np.min(valid_v))
+        return means, maxs, mins
+
+    # Calculate and assign
+    p_mean, p_max, p_min = get_stats(t_p0, v_p0, t_p1, v_p1)
+    df_surprisals["mean_pitch"], df_surprisals["max_pitch"], df_surprisals["min_pitch"] = p_mean, p_max, p_min
+
+    i_mean, i_max, i_min = get_stats(t_i0, v_i0, t_i1, v_i1)
+    df_surprisals["mean_intensity"], df_surprisals["max_intensity"], df_surprisals[
+        "min_intensity"] = i_mean, i_max, i_min
+
+    return df_surprisals
+
+
+def _align_turn_times(lookup_df: pd.DataFrame, turn_df: pd.DataFrame) -> pd.DataFrame:
 
     i, j = 0, 0
     durations, word_starts, word_stops = [], [], []
@@ -223,9 +286,10 @@ def align_turn_times(lookup_df: pd.DataFrame, turn_df: pd.DataFrame) -> pd.DataF
     while j < len(turn_df):
 
         if i >= len(lookup_df):
-            print(f"i={i}, j={j}")
-            print("lookup_df:", lookup_df.reset_index())
-            print("turn_df:", turn_df.reset_index()[["word", "turn_start", "turn_stop"]])
+            # print(f"i={i}, j={j}")
+            # print("lookup_df:", lookup_df.reset_index())
+            # print("turn_df:", turn_df.reset_index()[["word", "turn_start", "turn_stop"]])
+            pass
 
         if not i < len(lookup_df):
             break
@@ -271,6 +335,62 @@ def align_turn_times(lookup_df: pd.DataFrame, turn_df: pd.DataFrame) -> pd.DataF
     turn_df["channel"] = channels
     return turn_df
 
+def align_turn_times(lookup_df: pd.DataFrame, turn_df: pd.DataFrame) -> pd.DataFrame:
+    # --- ADD THESE LINES to extract to standard Python lists ---
+    l_words = lookup_df.word.tolist()
+    t_words = turn_df.word.tolist()
+    l_durs = lookup_df.duration.tolist()
+    l_starts = lookup_df.start_time.tolist()
+    l_ends = lookup_df.end_time.tolist()
+    l_pre = lookup_df.pre_word_pause.tolist()
+    l_post = lookup_df.post_word_pause.tolist()
+    l_chan = lookup_df.channel.tolist()
+    # -----------------------------------------------------------
+
+    i, j = 0, 0
+    durations, word_starts, word_stops = [], [], []
+    pre_pauses, post_pauses = [], []
+    channels = []
+
+    last_i = 0
+    while j < len(turn_df):
+        if not i < len(lookup_df):
+            break
+
+        # --- UPDATE THESE to use the lists instead of .iloc ---
+        lookup_w = l_words[i]
+        turn_w = str(t_words[j]).strip()
+
+        if lookup_w == turn_w or (
+            lookup_w == turn_w[:-1] and turn_w[-1] in string.punctuation
+        ):
+            durations.append(l_durs[i])
+            word_starts.append(l_starts[i])
+            word_stops.append(l_ends[i])
+            pre_pauses.append(l_pre[i])
+            post_pauses.append(l_post[i])
+            channels.append(l_chan[i])
+
+            i, j = i + 1, j + 1
+            last_i = i
+        else:
+            i += 1
+    # ... rest of your code remains exactly the same
+
+    assert len(durations) == len(turn_df.word)
+    assert len(word_starts) == len(turn_df.word)
+    assert len(word_stops) == len(turn_df.word)
+    assert len(post_pauses) == len(turn_df.word)
+    assert len(channels) == len(turn_df.word)
+
+    turn_df["duration"] = durations
+    turn_df["word_start"] = word_starts
+    turn_df["word_stop"] = word_stops
+    turn_df["pre_word_pause"] = post_pauses
+    turn_df["post_word_pause"] = post_pauses
+    turn_df["channel"] = channels
+    return turn_df
+
 
 def get_word_durations(
     df_surprisals: pd.DataFrame, time_word_lookup: pd.DataFrame
@@ -291,11 +411,11 @@ def get_word_durations(
     return pd.concat(results)
 
 
-def get_word_av_features(
+def _get_word_av_features(
     df_surprisals: pd.DataFrame, df_av: pd.DataFrame
 ) -> pd.DataFrame:
 
-    print("get_word_av_features")
+    # print("get_word_av_features")
 
     gazes = []
     gazes_other = []
@@ -329,11 +449,78 @@ def get_word_av_features(
     return df_surprisals
 
 
+def get_word_av_features(df_surprisals: pd.DataFrame, df_av: pd.DataFrame) -> pd.DataFrame:
+    def safe_nanmean(arr):
+        """Returns NaN if the array is empty or entirely NaNs, avoiding RuntimeWarnings."""
+        if len(arr) == 0 or np.isnan(arr).all():
+            return np.nan
+        return np.nanmean(arr)
+
+    # Ensure df_av is sorted by time
+    df_av = df_av.sort_values('timedelta').copy()
+
+    # Split AV data by speaker for faster lookup
+    av_users = df_av.user_id.unique()
+    av_data = {}
+    for user in av_users:
+        user_df = df_av[df_av.user_id == user]
+        av_data[user] = {
+            'time': user_df.timedelta.values,
+            'gaze': user_df.gaze_on.values,
+            'intensity': user_df.intensity.values
+        }
+
+    gazes, gazes_other, intensities = [], [], []
+
+    for st, sp, speaker in zip(df_surprisals.word_start, df_surprisals.word_stop, df_surprisals.speaker):
+        if np.isnan(st) or np.isnan(sp):
+            gazes.append(np.nan);
+            intensities.append(np.nan);
+            gazes_other.append(np.nan)
+            continue
+
+        st_floor, sp_ceil = math.floor(st), math.ceil(sp)
+
+        # Speaker AV
+        if speaker in av_data:
+            t_arr = av_data[speaker]['time']
+            idx_start = np.searchsorted(t_arr, st_floor)
+            idx_stop = np.searchsorted(t_arr, sp_ceil, side='right')
+
+            gaze_slice = av_data[speaker]['gaze'][idx_start:idx_stop]
+            int_slice = av_data[speaker]['intensity'][idx_start:idx_stop]
+
+            # --- USE THE HELPER FUNCTION HERE ---
+            gazes.append(safe_nanmean(gaze_slice))
+            intensities.append(safe_nanmean(int_slice))
+        else:
+            gazes.append(np.nan);
+            intensities.append(np.nan)
+
+        # Listener AV (Other)
+        other_speaker = next((u for u in av_users if u != speaker), None)
+        if other_speaker and other_speaker in av_data:
+            t_arr = av_data[other_speaker]['time']
+            idx_start = np.searchsorted(t_arr, st_floor)
+            idx_stop = np.searchsorted(t_arr, sp_ceil, side='right')
+
+            gaze_slice = av_data[other_speaker]['gaze'][idx_start:idx_stop]
+
+            # --- USE THE HELPER FUNCTION HERE ---
+            gazes_other.append(safe_nanmean(gaze_slice))
+        else:
+            gazes_other.append(np.nan)
+
+    df_surprisals["gaze_on"] = gazes
+    df_surprisals["gaze_on_other"] = gazes_other
+    df_surprisals["intensity"] = intensities
+    return df_surprisals
+
 def get_word_backchannels(
     df_surprisals: pd.DataFrame, df_turns: pd.DataFrame, df_audiophile: pd.DataFrame
 ) -> pd.DataFrame:
 
-    print("get_word_backchannels")
+    # print("get_word_backchannels")
 
     backchannels = []
     tree = IntervalTree()
@@ -435,12 +622,12 @@ def add_word_features(args: argparse.Namespace) -> None:
     df_surprisals.to_csv(args.surprisals_features_csv, index=False)
 
 
-def main():
-    paths = glob("/home/jm3743/data/candor_full_media/*/surprisal.csv")
+def _main():
+    paths = glob("/home/scratch/jm3743/candor_full_media/*/surprisal.csv")
     for in_csv in tqdm(paths):
         convo_id = in_csv.split("/")[-2]
 
-        data_dir = f"/home/jm3743/data/candor_full_media/{convo_id}/"
+        data_dir = f"/home/scratch/jm3743/candor_full_media/{convo_id}/"
 
         parser = argparse.ArgumentParser()
         parser.add_argument("--transcript_json", default=f"{data_dir}/transcription/transcribe_output.json")
@@ -455,6 +642,68 @@ def main():
         args = parser.parse_args()
         pd.set_option("display.max_rows", None)
         add_word_features(args)
+
+
+def process_single_file(in_csv):
+    try:
+        convo_id = in_csv.split("/")[-2]
+        data_dir = f"/home/scratch/jm3743/candor_full_media/{convo_id}/"
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--transcript_json", default=f"{data_dir}/transcription/transcribe_output.json")
+        parser.add_argument("--metadata_json", default=f"{data_dir}/metadata.json")
+        parser.add_argument("--surprisals_csv", default=in_csv)
+        parser.add_argument("--turns_csv", default=f"{data_dir}/transcription/transcript_backbiter.csv")
+        parser.add_argument("--audiophile_csv", default=f"{data_dir}/transcription/transcript_audiophile.csv")
+        parser.add_argument("--av_features_csv", default=f"{data_dir}/audio_video_features.csv")
+        parser.add_argument("--surprisals_features_csv", default=f"{data_dir}/word_level_features.csv")
+        parser.add_argument("--convo_id", default=convo_id)
+        parser.add_argument("--sound_file", default=f"{data_dir}/processed/{convo_id}.mp3")
+
+        args, _ = parser.parse_known_args()
+
+        add_word_features(args)
+
+        # If it completes successfully, return a success dictionary
+        return {"file": in_csv, "status": "success", "error": None}
+
+    except Exception as e:
+        # If anything crashes, catch it and grab the full traceback string
+        error_trace = traceback.format_exc()
+        return {"file": in_csv, "status": "failed", "error": error_trace}
+
+
+def main():
+    paths = glob("/home/scratch/jm3743/candor_full_media/*/surprisal.csv")
+
+    # Grab Slurm cores (defaulting to 4 based on your allocation)
+    slurm_cores = int(os.environ.get("SLURM_CPUS_PER_TASK", 4))
+
+    print(f"Starting process_map on {len(paths)} files with {slurm_cores} cores...")
+
+    # process_map automatically handles the pool, chunking, and progress bar
+    results = process_map(
+        process_single_file,
+        paths,
+        max_workers=slurm_cores,
+        chunksize=1
+    )
+
+    # Filter the results list to find any that failed
+    failures = [r for r in results if r["status"] == "failed"]
+
+    if failures:
+        print(f"\n[WARNING] Finished with {len(failures)} failed files.")
+
+        # Write the errors to a log file so you can investigate later
+        with open("processing_errors.log", "w") as f:
+            for fail in failures:
+                f.write(f"--- ERROR IN FILE: {fail['file']} ---\n")
+                f.write(fail['error'])
+                f.write("\n\n")
+        print("Detailed error traces have been saved to 'processing_errors.log'")
+    else:
+        print("\n[SUCCESS] All files processed successfully!")
 
 
 if __name__ == "__main__":
