@@ -9,4 +9,4 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python -m constituency.wp2parse >> t5-autoreg.log
+python -m constituency.wp2parse --batch_size 32 >> t5-autoreg.log

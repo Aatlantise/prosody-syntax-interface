@@ -9,4 +9,4 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python -m constituency.wp2parse --use_duration >> dur2parse.log
+python -m constituency.wp2parse --use_duration --batch_size 32 >> dur2parse.log

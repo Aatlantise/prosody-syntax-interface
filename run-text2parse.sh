@@ -9,4 +9,4 @@
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python -m constituency.wp2parse --use_text >> text2parse.log
+python -m constituency.wp2parse --use_text --batch_size 32 >> text2parse.log

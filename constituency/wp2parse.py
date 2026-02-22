@@ -269,11 +269,11 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str, default="/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json")
+    parser.add_argument("--data", type=str, default="/home/jm3743/prosody-syntax-interface/data/constituency_corpus_reldur.json")
     parser.add_argument("--model_name", type=str, default="t5-base")
     parser.add_argument("--max_source_length", type=int, default=256)
     parser.add_argument("--max_target_length", type=int, default=256)
-    parser.add_argument("--batch_size", type=int, default=16)
+    parser.add_argument("--batch_size", type=int, default=24)
     parser.add_argument("--lr", type=float, default=5e-5)
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--validation_split", type=float, default=0.1)
