@@ -1,4 +1,5 @@
 #!/bin/bash
+module purge
 module load anaconda3/3.11
 module load cuda/12.5
 nvcc --version

@@ -12,6 +12,7 @@ from tqdm import tqdm
 import traceback
 from tqdm.contrib.concurrent import process_map
 import os
+import gc
 
 PUNCT = set(string.punctuation)
 
@@ -645,6 +646,9 @@ def _main():
 
 
 def process_single_file(in_csv):
+    snd = None
+    df_av = None
+    
     try:
         convo_id = in_csv.split("/")[-2]
         data_dir = f"/home/scratch/jm3743/candor_full_media/{convo_id}/"
@@ -662,6 +666,9 @@ def process_single_file(in_csv):
 
         args, _ = parser.parse_known_args()
 
+        if os.path.exists(args.surprisals_features_csv):
+            return {"file": in_csv, "status": "skipped", "error": None}
+
         add_word_features(args)
 
         # If it completes successfully, return a success dictionary
@@ -671,6 +678,12 @@ def process_single_file(in_csv):
         # If anything crashes, catch it and grab the full traceback string
         error_trace = traceback.format_exc()
         return {"file": in_csv, "status": "failed", "error": error_trace}
+
+    finally:
+        del snd
+        del df_av
+
+        gc.collect()
 
 
 def main():
@@ -689,8 +702,13 @@ def main():
         chunksize=1
     )
 
-    # Filter the results list to find any that failed
+    num_success = sum(1 for r in results if r["status"] == "success")
+    num_skipped = sum(1 for r in results if r["status"] == "skipped")
     failures = [r for r in results if r["status"] == "failed"]
+
+    print("\n--- Pipeline Execution Summary ---")
+    print(f"Successfully processed: {num_success}")
+    print(f"Already existed (skipped): {num_skipped}")
 
     if failures:
         print(f"\n[WARNING] Finished with {len(failures)} failed files.")

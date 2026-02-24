@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import torch
 from transformers import AutoConfig, AutoTokenizer, AutoModelForCausalLM
 from glob import glob
+import os
 
 CANDOR_CLIFFHANGER_COL_MAPPING = {
     "speaker": "speaker",
@@ -345,7 +346,11 @@ def main():
         convo_id = in_csv.split("/")[-3]
         out_csv = f"/home/scratch/jm3743/candor_full_media/{convo_id}/surprisal.csv"
 
+        if os.path.exists(out_csv):
+            continue
+
         df = read_candor_dataset(in_csv, args.turn_strategy)
+        df["text"] = df["text"].fillna("").astype(str)
         df["turn_id"] = range(len(df))
 
         # Count words based on spaces to match the slicing logic later
@@ -359,7 +364,7 @@ def main():
         df["text_w_context"] = (df["context"].fillna("") + " " + df["text"]).str.strip()
         df["context_wc"] = df.context.astype(str).apply(lambda x: len(x.split()))
 
-        sentences = df.text_w_context.tolist()
+        sentences = df.text_w_context.fillna("").astype(str).tolist()
 
         # Compute surprisals using the fast batched tensor logic
         lm_result = compute(sentences, tokenizer, model, max_tokens, b_size=args.batch_size)
@@ -374,6 +379,7 @@ def main():
 
         # Explode into word-level rows
         df = df.explode(["word", "surprisal"])
+        df = df.dropna(subset=["word", "surprisal"]).reset_index(drop=True)
         df = df.rename(columns={"start": "turn_start", "stop": "turn_stop"})
 
         df.to_csv(
