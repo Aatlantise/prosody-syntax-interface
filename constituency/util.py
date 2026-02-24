@@ -5,7 +5,10 @@ from tqdm import tqdm
 import stanza
 import re
 from transformers import GPT2TokenizerFast, T5TokenizerFast
-from constituency.data import load_data, extract_examples_from_sent, load_celex_syllables
+from constituency.data import load_data, extract_examples_from_sent, load_celex_syllables, count_syllables_heuristic
+import pandas as pd
+import math
+import string
 
 
 class ParseTokenizer:
@@ -189,8 +192,7 @@ class TokenizerBuilder:
         return tokenizer
 
 
-
-class CorpusBuilder:
+class LibriCorpusBuilder:
     def __init__(self, debug=False):
         self.root_dir = os.path.expanduser('/home/jm3743/data/LibriTTS')
         self.splits = ['train-clean-100', 'dev-clean', 'test-clean']
@@ -230,6 +232,26 @@ class CorpusBuilder:
         # Internal node: recurse over children
         children_str = " ".join(self.strip_words(c) for c in tree.children)
         return f"({tree.label} {children_str})"
+
+
+    def get_stanza_parse_and_write(self, texts, out_f, metadata):
+        # Batch process
+        docs = self.nlp("\n\n".join(texts))  # Stanza treats blank lines as sentence breaks
+        all_linearized = []
+        all_tagsonly = []
+        for doc_idx, doc in enumerate(docs.sentences):
+            tree = doc.constituency
+            linearized = " ".join(str(tree).split())
+            tags_only = " ".join(self.strip_words(tree).split())
+            all_linearized.append(linearized)
+            all_tagsonly.append(tags_only)
+
+        # Safety: ensure alignment between metadata and outputs
+        # Stanza sometimes merges/splits sentences, so guard with zip
+        for meta, lin, tags in zip(metadata, all_linearized, all_tagsonly):
+            meta["full_parse"] = lin
+            meta["parse"] = tags
+            out_f.write(json.dumps(meta) + "\n")
 
 
     def __call__(self):
@@ -328,23 +350,7 @@ class CorpusBuilder:
 
                     parse_errors = 0
                     try:
-                        # Batch process
-                        docs = self.nlp("\n\n".join(texts))  # Stanza treats blank lines as sentence breaks
-                        all_linearized = []
-                        all_tagsonly = []
-                        for doc_idx, doc in enumerate(docs.sentences):
-                            tree = doc.constituency
-                            linearized = " ".join(str(tree).split())
-                            tags_only = " ".join(self.strip_words(tree).split())
-                            all_linearized.append(linearized)
-                            all_tagsonly.append(tags_only)
-
-                        # Safety: ensure alignment between metadata and outputs
-                        # Stanza sometimes merges/splits sentences, so guard with zip
-                        for meta, lin, tags in zip(metadata, all_linearized, all_tagsonly):
-                            meta["full_parse"] = lin
-                            meta["parse"] = tags
-                            out_f.write(json.dumps(meta) + "\n")
+                        self.get_stanza_parse_and_write(texts, out_f, metadata)
 
                     except Exception as e:
                         print(f"Error parsing batch: {e}")
@@ -358,6 +364,114 @@ class CorpusBuilder:
             json.dump(repairs, f, ensure_ascii=False, indent=4)
 
 
+class CandorCorpusBuilder(LibriCorpusBuilder):
+    def __init__(self, debug):
+        super().__init__()
+        if debug:
+            self.debug = True
+            output_path = '/home/jm3743/prosody-syntax-interface/data/temp.json'
+        else:
+            output_path = '/home/jm3743/prosody-syntax-interface/data/candor_corpus.json'
+        self.output_path = os.path.expanduser(output_path)
+
+    def __call__(self):
+        # Assuming count_syllables_heuristic is defined globally or imported
+        syll_map = load_celex_syllables()
+
+        with open(self.output_path, 'w', encoding='utf-8') as out_f:
+            file_pattern = "/home/scratch/jm3743/candor_full_media/*/features_mfa_merged.csv"
+            files = glob.glob(file_pattern)
+            print(f"Found {len(files)} files.")
+
+            for file_path in tqdm(files, desc=f"Parsing"):
+                texts = []
+                metadata = []
+
+
+                try:
+                    df = pd.read_csv(file_path)
+
+                    # Group by turn_id and speaker to prevent sentences crossing speaker boundaries
+                    for (turn_id, speaker), turn_df in df.groupby(['turn_id', 'speaker']):
+                        current_words = []
+                        current_prosody = []
+
+                        # Use itertuples for massive speedup over iterrows
+                        for row in turn_df.itertuples():
+                            w = str(row.word).strip()
+                            if w == 'nan' or not w:
+                                continue
+
+                            # Clean punctuation purely for the syllable dictionary lookup
+                            clean_w = w.lower().translate(str.maketrans('', '', string.punctuation))
+                            if not clean_w:
+                                clean_w = w.lower()  # Fallback for purely punctuation tokens
+
+                            # Safely extract duration and pause, defaulting to 0.0 if missing
+                            dur = float(row.duration) if pd.notna(row.duration) else 0.0
+                            pause = float(row.post_word_pause) if pd.notna(row.post_word_pause) else 0.0
+
+                            # Calculate Relative Duration
+                            syllables = syll_map.get(clean_w, count_syllables_heuristic(clean_w))
+                            syllables = max(1, syllables)  # Prevent division by zero
+                            rel_dur = dur / syllables
+
+                            current_words.append(w)
+                            current_prosody.append({
+                                'duration': dur,
+                                'pause': pause,
+                                'rel_dur': rel_dur
+                            })
+
+                            # Sentence Segmentation: Check if the word ends in terminal punctuation
+                            if w[-1] in ['.', '?', '!']:
+                                if len(current_words) >= 5:
+                                    sentence_text = ' '.join(current_words)
+                                    texts.append(sentence_text)
+
+                                    metadata.append({
+                                        "file": file_path,
+                                        "turn_id": int(turn_id),
+                                        "speaker": speaker,
+                                        "text": sentence_text,
+                                        "pause": [p['pause'] for p in current_prosody],
+                                        "duration": [p['duration'] for p in current_prosody],
+                                        "rel_dur": [p['rel_dur'] for p in current_prosody],
+                                    })
+                                # Reset accumulators for the next sentence in the turn
+                                current_words = []
+                                current_prosody = []
+
+                        # Flush any remaining words at the end of the turn (if no terminal punctuation)
+                        if len(current_words) >= 5:
+                            sentence_text = ' '.join(current_words)
+                            texts.append(sentence_text)
+                            metadata.append({
+                                "file": file_path,
+                                "turn_id": int(turn_id),
+                                "speaker": speaker,
+                                "text": sentence_text,
+                                "pause": [p['pause'] for p in current_prosody],
+                                "duration": [p['duration'] for p in current_prosody],
+                                "rel_dur": [p['rel_dur'] for p in current_prosody],
+                            })
+
+                except Exception as e:
+                    print(f"Error processing {file_path}: {e}")
+
+                if not texts:
+                    continue
+
+                parse_errors = 0
+                try:
+                    self.get_stanza_parse_and_write(texts, out_f, metadata)
+                except Exception as e:
+                    print(f"Error parsing batch: {e}")
+                    parse_errors += 1
+
+                if self.debug:
+                    break
+
 def tokenizer_test():
     t = TokenizerBuilder("gpt2")
     tokenizer = t.tokenizer
@@ -367,7 +481,7 @@ def tokenizer_test():
     print([tokenizer.decode(k) for k in tokens["input_ids"]])
 
 def corpus_test(debug=False):
-    corpus = CorpusBuilder(debug=debug)
+    corpus = CandorCorpusBuilder(debug=debug)
     corpus()
 
 
