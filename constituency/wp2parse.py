@@ -146,6 +146,7 @@ def single_run(args, tokenizer, tokenized_train, tokenized_eval):
         model=model,
         args=training_args,
         tokenizer=tokenizer,
+        # processing_class=tokenizer, # for Leon with transformers > 5.0.0
         data_collator=collator,
         train_dataset=tokenized_train,
         eval_dataset=tokenized_eval,
@@ -181,7 +182,7 @@ def main(args):
     kf = KFold(n_splits=k, shuffle=True, random_state=42)
 
     print("Loading data...")
-    items = load_jsonl_data(args.data, debug=args.debug)
+    items = load_jsonl_data(args)
     print(f"Loaded {len(items)} examples.")
 
     # Convert the list of items to a Hugging Face Dataset
@@ -274,7 +275,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_source_length", type=int, default=256)
     parser.add_argument("--max_target_length", type=int, default=256)
     parser.add_argument("--batch_size", type=int, default=24)
-    parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument("--lr", type=float, default=2e-4)
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--validation_split", type=float, default=0.1)
     parser.add_argument("--eval_steps", type=int, default=500)
@@ -286,8 +287,12 @@ if __name__ == "__main__":
     parser.add_argument("--use_duration", action="store_true", default=False)
     parser.add_argument("--use_zeros", action="store_true", default=False)
     parser.add_argument("--use_text", action="store_true", default=False)
+    parser.add_argument("--nopunct", action="store_true", default=False)
     parser.add_argument("--debug", action="store_true", default=False)
     args = parser.parse_args()
+
+    if args.data.lower() == "candor":
+        args.data = "/home/jm3743/prosody-syntax-interface/data/candor_corpus.json"
 
     feats = []
     if args.use_zeros:
@@ -300,6 +305,10 @@ if __name__ == "__main__":
         feats.append("text")
     if args.debug:
         feats.append("debug")
+    if 'candor' in args.data.lower():
+        feats.append("candor")
+    if args.nopunct:
+        feats.append("nopunct")
     args.outdir = f"/home/jm3743/prosody-syntax-interface/outputs/{'_'.join(feats)}"
 
     main(args)

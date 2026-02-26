@@ -484,8 +484,16 @@ def corpus_test(debug=False):
     corpus = CandorCorpusBuilder(debug=debug)
     corpus()
 
+def remove_punctuation(text):
+    # Join characters that are not in string.punctuation
+    return ''.join(char for char in text if char not in string.punctuation)
 
-def load_jsonl_data(path="/home/jm3743/prosody-syntax-interface/data/constituency_corpus.json", debug=False):
+
+def load_jsonl_data(args):
+    debug = args.debug
+    path = args.data
+    nopunct = args.nopunct
+
     items = []
     i = 0
     with open(path, "r", encoding="utf-8") as f:
@@ -493,8 +501,10 @@ def load_jsonl_data(path="/home/jm3743/prosody-syntax-interface/data/constituenc
             obj = json.loads(line)
             if "text" not in obj or "pause" not in obj or "duration" not in obj or "parse" not in obj:
                 continue
+            if "candor" in path and obj["text"][0].islower():
+                continue
             items.append({
-                "text": obj["text"],
+                "text": remove_punctuation(obj["text"]) if nopunct else obj["text"],
                 "pause": obj["pause"],
                 "duration": obj["rel_dur"],  # use relative duration
                 "parse": obj["parse"],
@@ -553,6 +563,14 @@ def preprocess(tokenizer, examples, max_source_length, max_target_length):
             max_length=max_target_length,
             padding="max_length"
         )
+
+    # text_target=targets # Leon code for transformers > 5.0
+    # labels = tokenizer(
+    #     text_target=targets,
+    #     truncation=True,
+    #     max_length=max_target_length,
+    #     padding="max_length"
+    # )
 
     # Replace pad token id in labels with -100 for loss masking
     label_pad_token_id = -100
