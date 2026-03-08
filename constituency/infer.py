@@ -103,18 +103,17 @@ def infer_example(
     output_text = tokenizer.batch_decode(token_ids, skip_special_tokens=True)
 
     # Shift labels so that token t is predicted from token t-1
-    shift_logits = logits[:, :-1, :].contiguous()
-    shift_labels = labels[:, 1:].contiguous()
+    # shift_logits = logits[:, :-1, :].contiguous()
+    # shift_labels = labels[:, 1:].contiguous()
 
     # Mask out positions where label == -100
-    active_positions = shift_labels != -100
-    vocab = shift_logits.size(-1)
+    active_positions = labels != -100
 
     # Compute log-probs
-    logprobs = F.log_softmax(shift_logits, dim=-1)
+    logprobs = F.log_softmax(logits, dim=-1)
 
     # Gather log p( correct_token )
-    token_logprobs = logprobs.gather(-1, shift_labels.unsqueeze(-1)).squeeze(-1)
+    token_logprobs = logprobs.gather(-1, labels.unsqueeze(-1)).squeeze(-1)
 
     # Mask
     token_logprobs = token_logprobs[active_positions]
@@ -204,13 +203,26 @@ def eval_model(checkpoint_path, model_class):
 def main(mode):
     model_path = f"/home/jm3743/prosody-syntax-interface/outputs/{mode}/model_final"
     model_class = DualEncoderT5
-    if 'text' in mode:
-        text = "She spoils the room."
+    if 'candor' in mode:
+        if 'text' in mode:
+            text = "She spoils the look of the room."
+        else:
+            text = None
+        parse = "(ROOT (S (NP PRP) (VP VBZ (NP (NP DT NN) (PP IN (NP DT NN)))) .))"
+        pause = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.02]
+        duration = [0.11, 0.6, 0.1, 0.22, 0.14, 0.1, 0.5]
+    elif 'libri' in mode:
+        if 'text' in mode:
+            text = "So, how did you end up in Kentucky then?"
+        else:
+            text = None
+        parse = "(ROOT (SBARQ RB (WHADVP WRB) (SQ VBD (NP PRP) (VP VB (PRT RP) (PP IN (NP NNP)) (ADVP RB))) .))"
+        pause = [0.0100000000001045, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.4900000000000091]
+        duration = [0.3699999999998908, 0.2999999999999545, 0.1599999999999681, 0.1100000000000136, 0.1499999999999772,
+                    0.1900000000000545, 0.2699999999999818, 0.14333333333331666, 0.32000000000005]
     else:
-        text = None
-    parse = "(ROOT (S (NP PRP) (VP VBZ (NP DT NN)) .))"
-    pause = [0.0, 0.0, 0.0, 0.03]
-    duration = [0.1, 0.62, 0.11, 0.47]
+        raise ValueError
+
     if 'pause' in mode:
         prosody = pause
     elif 'duration' in mode:
@@ -226,11 +238,11 @@ def main(mode):
     )
 
 if __name__ == "__main__":
-    # model_class = GPT2LMHeadModel
-    # checkpoint_path = "/home/jm3743/prosody-syntax-interface/outputs/parse_lm/model_final"
-    # eval_model(checkpoint_path, model_class=model_class)
-    main("pause")
-    main("duration")
-    main("text")
-    main("pause_text")
-    main("duration_text")
+    # main("libri_duration")
+    # main("libri_duration_text")
+
+    main("candor_autoreg")
+    main("candor_duration")
+    main("candor_text")
+    main("candor_duration_text")
+

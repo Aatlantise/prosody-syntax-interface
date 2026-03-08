@@ -33,36 +33,12 @@ def compute_sequence_surprisals(model, tokenizer, dataset, collator, batch_size,
     with torch.no_grad():
         for batch in loader:
             # Move batch to device
-
-            input_ids = batch["input_ids"].to(device) if batch["input_ids"] is not None else None
-            labels = batch["labels"].to(device)
+            batch = {k: v.to(device) if isinstance(v, torch.Tensor) else v for k, v in batch.items()}
 
             # Forward pass
-            # Note: T5ForConditionalGeneration automatically shifts labels for decoding
-            # but we need to check if your DualEncoderT5 does the same.
-            # Assuming it inherits or behaves like T5:
-            outputs = model(input_ids=input_ids, labels=labels)
+            outputs = model(**batch)
             logits = outputs.logits
-
-            # T5 Standard Loss Calculation Logic (Simulated with reduction='none')
-            # Reshape logits to [Batch * Seq_Len, Vocab] and labels to [Batch * Seq_Len]
-            # But to keep per-sequence sum, we work with [Batch, Seq_Len, Vocab]
-
-            # Check dimensions match
-            # Logits: [B, Seq_Len, Vocab], Labels: [B, Seq_Len]
-            shift_logits = logits[..., :-1, :].contiguous()
-            shift_labels = labels[..., 1:].contiguous()
-
-            # NOTE: T5 usually handles the shifting internally in the forward pass
-            # and returns loss. However, since we need unreduced loss,
-            # and 'outputs.loss' is already a mean scalar, we must recalculate
-            # using outputs.logits.
-
-            # Standard T5 behavior: it doesn't shift inside forward() for loss calculation
-            # if we look at the source, but it depends on your DualEncoderT5 implementation.
-            # SAFE BET: Calculate CrossEntropy on the full logits/labels provided.
-            # If your model shifts internally, use logits/labels as is.
-            # If it's standard T5, the labels are already aligned with logits.
+            labels = batch["labels"]
 
             B, L, V = logits.shape
 
@@ -70,18 +46,18 @@ def compute_sequence_surprisals(model, tokenizer, dataset, collator, batch_size,
             flat_logits = logits.view(-1, V)
             flat_labels = labels.view(-1)
 
+            # Calculate loss (ignore_index=-100 handles the padding)
             per_token_loss = loss_fct(flat_logits, flat_labels)
 
             # Reshape back to [Batch, Seq_Len]
             per_token_loss = per_token_loss.view(B, L)
 
-            # Sum loss per sequence (masking is handled by ignore_index=-100 in loss_fct)
-            # This gives total surprisal (nats) for the sequence
+            # Sum loss per sequence
             seq_surprisal = per_token_loss.sum(dim=1)
 
             surprisals.extend(seq_surprisal.cpu().tolist())
 
-    return surprisals
+        return surprisals
 
 def single_run(args, tokenizer, tokenized_train, tokenized_eval):
     outdir = Path(args.outdir)
@@ -295,18 +271,24 @@ if __name__ == "__main__":
         args.data = "/home/jm3743/prosody-syntax-interface/data/candor_corpus.json"
 
     feats = []
+    if 'candor' in args.data.lower():
+        feats.append("candor")
+    else:
+        feats.append("libri")
+
+    if args.use_text:
+        feats.append("text")
+
     if args.use_zeros:
         feats.append("zero")
     elif args.use_pause:
         feats.append("pause")
     elif args.use_duration:
         feats.append("duration")
-    if args.use_text:
-        feats.append("text")
+
     if args.debug:
         feats.append("debug")
-    if 'candor' in args.data.lower():
-        feats.append("candor")
+
     if args.nopunct:
         feats.append("nopunct")
     args.outdir = f"/home/jm3743/prosody-syntax-interface/outputs/{'_'.join(feats)}"
