@@ -123,10 +123,11 @@ class TokenizerBuilder:
         self.filename = filename
 
         # POS tags (PTB set) and brackets as regular tokens
-        self.pos_tags = ["CC", "CD", "DT", "EX", "FW", "IN", "JJ", "JJR", "JJS", "LS",
-                         "MD", "NN", "NNS", "NNP", "NNPS", "PDT", "POS", "PRP", "PRP$",
-                         "RB", "RBR", "RBS", "RP", "SYM", "TO", "UH", "VB", "VBD", "VBG",
-                         "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB", "#", "$", ".", ",", "''"]
+        self.pos_tags = ['$', "''", ',', '-LRB-', '-RRB-', '.', ':', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CC', 'CD', 'CONJP', 'DT', 'EX',
+         'FRAG', 'FW', 'HYPH', 'GW', 'IN', 'INTJ', 'JJ', 'JJR', 'JJS', 'LS', 'LST', 'MD', 'NAC', 'NFP', 'NML', 'NN', 'NNP', 'NNPS',
+         'NNS', 'NP', 'PDT', 'POS', 'PP', 'PRN', 'PRP', 'PRP$', 'PRT', 'QP', 'RB', 'RBR', 'RBS', 'ROOT', 'RP', 'RRC',
+         'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'SYM', 'TO', 'UCP', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'VP',
+         'WDT', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'WP', 'WP$', 'WRB', 'X', '``']
 
         # True special tokens
         self.special_tokens = {
@@ -486,7 +487,11 @@ def corpus_test(debug=False):
 
 def remove_punctuation(text):
     # Join characters that are not in string.punctuation
-    return ''.join(char for char in text if char not in string.punctuation)
+    """
+    Out of '$', "''", ',', '-LRB-', '-RRB-', '.', ':', '``', we opt to remove
+    all but '$', which is realized as "dollars" in text.
+    """
+    return ''.join(char for char in text if char == '$' or char not in string.punctuation)
 
 
 def load_jsonl_data(args):
@@ -504,10 +509,13 @@ def load_jsonl_data(args):
             if "candor" in path and obj["text"][0].islower():
                 continue
             items.append({
-                "text": remove_punctuation(obj["text"]) if nopunct else obj["text"],
+                "text": remove_punctuation(obj["text"]).lower() if nopunct else obj["text"],
                 "pause": obj["pause"],
                 "duration": obj["rel_dur"],  # use relative duration
-                "parse": obj["parse"],
+                # We remove "''", ',', '-LRB-', '-RRB-', '.', ':', '``', 'SYM'.
+                "parse": obj["parse"].replace(" ''", "").replace(" .", "").replace(" ,", "").replace(
+                    " -LRB-", "").replace(" -RRB-", "").replace(" .", "").replace(" :", "").replace(
+                    " ``", "").replace(" SYM", "") if args.nopunct else obj["parse"]
             })
             i += 1
             if debug and i == 100:

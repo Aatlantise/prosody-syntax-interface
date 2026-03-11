@@ -126,7 +126,7 @@ def single_run(args, tokenizer, tokenized_train, tokenized_eval):
         data_collator=collator,
         train_dataset=tokenized_train,
         eval_dataset=tokenized_eval,
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=5)]
     )
     trainer.model.floating_point_ops = lambda _: 0  # allow input_ids = None
 
@@ -269,6 +269,8 @@ if __name__ == "__main__":
 
     if args.data.lower() == "candor":
         args.data = "/home/jm3743/prosody-syntax-interface/data/candor_corpus.json"
+    elif args.data.lower() == "libri":
+        args.data = "/home/jm3743/prosody-syntax-interface/data/constituency_corpus_reldur.json"
 
     feats = []
     if 'candor' in args.data.lower():
