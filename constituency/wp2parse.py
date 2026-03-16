@@ -115,7 +115,8 @@ def single_run(args, tokenizer, tokenized_train, tokenized_eval):
         greater_is_better=False,
         predict_with_generate=False,
         report_to=["tensorboard"],
-        load_best_model_at_end = True
+        load_best_model_at_end = True,
+        # skip_memory_metrics = True # For Leon
     )
 
     trainer = Seq2SeqTrainer(
