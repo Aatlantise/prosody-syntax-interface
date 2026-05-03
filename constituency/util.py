@@ -494,10 +494,22 @@ def remove_punctuation(text):
     return ''.join(char for char in text if char == '$' or char not in string.punctuation)
 
 
+def format_parse(parse, args):
+    if args.dyck:
+        return "".join([p for p in parse if p in "()"])
+    elif args.nopunct:
+        return parse.replace(" ''", "").replace(" .", "").replace(" ,", "").replace(
+                    " -LRB-", "").replace(" -RRB-", "").replace(" .", "").replace(" :", "").replace(
+                    " ``", "").replace(" SYM", "")
+    else:
+        return parse
+
+
 def load_jsonl_data(args):
     debug = args.debug
     path = args.data
     nopunct = args.nopunct
+    dyck = args.dyck
 
     items = []
     i = 0

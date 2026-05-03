@@ -265,6 +265,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_zeros", action="store_true", default=False)
     parser.add_argument("--use_text", action="store_true", default=False)
     parser.add_argument("--nopunct", action="store_true", default=False)
+    parser.add_argument("--dyck", action="store_true", default=False)
     parser.add_argument("--debug", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -292,7 +293,9 @@ if __name__ == "__main__":
     if args.debug:
         feats.append("debug")
 
-    if args.nopunct:
+    if args.dyck:
+        feats.append("dyck")
+    elif args.nopunct:
         feats.append("nopunct")
     args.outdir = f"/home/jm3743/prosody-syntax-interface/outputs/{'_'.join(feats)}"
 
