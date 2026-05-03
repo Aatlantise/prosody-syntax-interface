@@ -498,6 +498,7 @@ def format_parse(parse, args):
     if args.dyck:
         return "".join([p for p in parse if p in "()"])
     elif args.nopunct:
+        # We remove "''", ',', '-LRB-', '-RRB-', '.', ':', '``', 'SYM'.
         return parse.replace(" ''", "").replace(" .", "").replace(" ,", "").replace(
                     " -LRB-", "").replace(" -RRB-", "").replace(" .", "").replace(" :", "").replace(
                     " ``", "").replace(" SYM", "")
@@ -509,7 +510,6 @@ def load_jsonl_data(args):
     debug = args.debug
     path = args.data
     nopunct = args.nopunct
-    dyck = args.dyck
 
     items = []
     i = 0
@@ -524,10 +524,7 @@ def load_jsonl_data(args):
                 "text": remove_punctuation(obj["text"]).lower() if nopunct else obj["text"],
                 "pause": obj["pause"],
                 "duration": obj["rel_dur"],  # use relative duration
-                # We remove "''", ',', '-LRB-', '-RRB-', '.', ':', '``', 'SYM'.
-                "parse": obj["parse"].replace(" ''", "").replace(" .", "").replace(" ,", "").replace(
-                    " -LRB-", "").replace(" -RRB-", "").replace(" .", "").replace(" :", "").replace(
-                    " ``", "").replace(" SYM", "") if args.nopunct else obj["parse"]
+                "parse": format_parse(obj["parse"], args),
             })
             i += 1
             if debug and i == 100:

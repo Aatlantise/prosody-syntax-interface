@@ -102,6 +102,8 @@ def single_run(args, tokenizer, tokenized_train, tokenized_eval):
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
         learning_rate=args.lr,
+        lr_scheduler_type="cosine",
+        warmup_ratio=0.1,
         num_train_epochs=args.epochs,
         logging_steps=args.logging_steps,
         eval_steps=args.eval_steps,
@@ -155,7 +157,10 @@ def single_run(args, tokenizer, tokenized_train, tokenized_eval):
     return eval_res, seq_surprisals
 
 def main(args):
-    k = 10
+    if 'candor' in args.data:
+        k = 5
+    else: # libri
+        k = 10
     kf = KFold(n_splits=k, shuffle=True, random_state=42)
 
     print("Loading data...")
@@ -252,12 +257,12 @@ if __name__ == "__main__":
     parser.add_argument("--max_source_length", type=int, default=256)
     parser.add_argument("--max_target_length", type=int, default=256)
     parser.add_argument("--batch_size", type=int, default=24)
-    parser.add_argument("--lr", type=float, default=2e-4)
+    parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--validation_split", type=float, default=0.1)
-    parser.add_argument("--eval_steps", type=int, default=500)
-    parser.add_argument("--logging_steps", type=int, default=500)
-    parser.add_argument("--save_steps", type=int, default=500)
+    parser.add_argument("--eval_steps", type=int, default=2000)
+    parser.add_argument("--logging_steps", type=int, default=2000)
+    parser.add_argument("--save_steps", type=int, default=2000)
     parser.add_argument("--fp16", action="store_true")
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--use_pause", action="store_true", default=False)
@@ -277,6 +282,9 @@ if __name__ == "__main__":
     feats = []
     if 'candor' in args.data.lower():
         feats.append("candor")
+        args.eval_steps = 3500
+        args.save_steps = 3500
+        args.loggin_steps = 3500
     else:
         feats.append("libri")
 
