@@ -11,6 +11,7 @@ from sklearn.model_selection import KFold
 import torch
 from torch.utils.data import DataLoader
 import pandas as pd
+import sys
 
 
 def get_tokenizer():
@@ -18,6 +19,23 @@ def get_tokenizer():
     tokenizer = builder.build_tokenizer()
     return tokenizer
 
+
+
+def verify_gpu():
+    if not torch.cuda.is_available():
+        print("ERROR: PyTorch cannot see any CUDA devices.")
+        sys.exit(1)
+
+    try:
+        # Actually try to communicate with the GPU
+        device_name = torch.cuda.get_device_name(0)
+        # Create a tiny tensor on the GPU to verify 'busy/unavailable' status
+        torch.zeros(1).to("cuda")
+        print(f"GPU Verified: {device_name} (Allocated: {torch.cuda.device_count()} device(s))")
+    except Exception as e:
+        print(f"ERROR: CUDA is 'available' but unreachable: {e}")
+        print("This usually means another process has an exclusive lock on the GPU.")
+        sys.exit(1)
 
 def compute_sequence_surprisals(model, tokenizer, dataset, collator, batch_size, device):
     """
@@ -259,6 +277,8 @@ def main(args):
     print(f"Variance: {final_std**2:.4f}")
 
 if __name__ == "__main__":
+    verify_gpu()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, default="/home/jm3743/prosody-syntax-interface/data/constituency_corpus_reldur.json")
     parser.add_argument("--model_name", type=str, default="t5-base")
