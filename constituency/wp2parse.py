@@ -90,6 +90,14 @@ def single_run(args, tokenizer, tokenized_train, tokenized_eval):
 
     model.to(args.device)
 
+    # for CanadaCompute
+    if args.use_text: # text2parse, wd2parse, wp2parse
+        pass
+    elif args.use_pause or args.use_duration: # pause2parse, dur2parse
+        model.main_input_name = "prosody_feats"
+    else: # autoregressive
+        model.main_input_name = "labels"
+
     collator = DualEncoderCollator(tokenizer,
                                    device=args.device,
                                    return_text=args.use_text,
@@ -118,14 +126,14 @@ def single_run(args, tokenizer, tokenized_train, tokenized_eval):
         predict_with_generate=False,
         report_to=["tensorboard"],
         load_best_model_at_end = True,
-        # skip_memory_metrics = True # For Leon
+        skip_memory_metrics = True # For Leon
     )
 
     trainer = Seq2SeqTrainer(
         model=model,
         args=training_args,
-        tokenizer=tokenizer,
-        # processing_class=tokenizer, # for Leon with transformers > 5.0.0
+        # tokenizer=tokenizer, # for gcp
+        processing_class=tokenizer, # for Leon / canadacompute with transformers > 5.0.0
         data_collator=collator,
         train_dataset=tokenized_train,
         eval_dataset=tokenized_eval,

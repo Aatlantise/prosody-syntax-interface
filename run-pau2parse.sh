@@ -1,12 +1,14 @@
 #!/bin/bash
 
-#SBATCH --job-name="pause2parse"
+#SBATCH --job-name="cd-autoreg"
+#SBATCH --gpus=h100:1
+#SBATCH --mem=64G
 #SBATCH --output="%x.o%j"
-#SBATCH --time=120:00:00
-#SBATCH --gres=gpu
-#SBATCH --mem=0
+#SBATCH --time=144:00:00
+#SBATCH --account=def-annielee
+#SBATCH --cpus-per-task=4
 #SBATCH --mail-user=jm3743@georgetown.edu
 #SBATCH --mail-type=END,FAIL
 
 source env.sh
-python -m constituency.wp2parse --use_pause >> pause2parse.log
+python -m constituency.wp2parse --use_pause --batch_size 32 --dyck >> libri-pause2dyck.log

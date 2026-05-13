@@ -573,21 +573,22 @@ def preprocess(tokenizer, examples, max_source_length, max_target_length):
         token_level_durations.append(_token_level_duration)
         token_level_pauses.append(_token_level_pause)
 
-    with tokenizer.as_target_tokenizer():
-        labels = tokenizer(
-            targets,
-            truncation=True,
-            max_length=max_target_length,
-            padding="max_length"
-        )
+    # Legacy code for GCP
+    # with tokenizer.as_target_tokenizer():
+    #     labels = tokenizer(
+    #         targets,
+    #         truncation=True,
+    #         max_length=max_target_length,
+    #         padding="max_length"
+    #     )
 
-    # text_target=targets # Leon code for transformers > 5.0
-    # labels = tokenizer(
-    #     text_target=targets,
-    #     truncation=True,
-    #     max_length=max_target_length,
-    #     padding="max_length"
-    # )
+    # text_target=targets # Leon / CanacaCompute code for transformers > 5.0
+    labels = tokenizer(
+        text_target=targets,
+        truncation=True,
+        max_length=max_target_length,
+        padding="max_length"
+    )
 
     # Replace pad token id in labels with -100 for loss masking
     label_pad_token_id = -100

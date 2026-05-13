@@ -154,9 +154,16 @@ configs/local/default.yaml
 # artifacts
 /data/
 /logs/
-/outputs/
+/outputs/*/*.json
+/outputs/*/*.bin
+/outputs/*/*.safetensors
+/outputs/*/model*
 .env
 *.pdf
+*.sh
+.Rhistory
+*.png
+*.csv
 *.sh
 
 # Aim logging
