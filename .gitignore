@@ -154,7 +154,6 @@ configs/local/default.yaml
 # artifacts
 /data/
 /logs/
-/outputs/
 .env
 *.pdf
 *.sh
