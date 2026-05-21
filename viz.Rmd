@@ -240,4 +240,85 @@ ggsave("line.pdf", plot2, width = 8, height = 4, dpi = 300)
 ```
 
 
+```{r}
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# 1. Prepare the data
+# Using the values from our previous calculations and your tables
+df <- data.frame(
+  dataset = rep(c("Spontaneous (CANDOR)", "Planned (LibriTTS)"), each = 12),
+  parse_type = rep(rep(c("Bracketing", "Full Parse"), each = 6), 2),
+  condition = rep(c("H(S)", "H(S|W)", "H(S|P_p)", "H(S|W,P_p)", "H(S|P_d)", "H(S|W,P_d)"), 4),
+  nats_seq = c(
+    # CANDOR Bracketing
+    13.9, 2.83, 12.7, 3.03, 12.4, 3.06,
+    # CANDOR Full Parse
+    37.2, 5.25, 35.1, 5.31, 33.7, 5.27,
+    # LibriTTS Bracketing (using averages we calculated)
+    16.9, 5.76, 15.6, 6.77, 15.60, 6.71, 
+    # LibriTTS Full Parse
+    48.2, 13.7, 46.2, 13.8, 46.6, 13.6
+  ),
+  stdev = c(
+    # Placeholders for CANDOR (replace with actuals if available)
+    0.05, 0.07, 0.04, 0.06, 0.04, 0.06,
+    0.11, 0.03, 0.10, 0.04, 0.09, 0.05,
+    # LibriTTS calculated stdevs
+    0.15, 0.137, 0.100, 0.19, 0.185, 0.18,
+    0.64, 0.18, 1.51, 1.78, 0.3, 0.44
+  )
+)
+
+df$condition <- factor(df$condition, levels = c("H(S)", "H(S|P_p)", "H(S|P_d)", "H(S|W)", "H(S|W,P_p)", "H(S|W,P_d)"))
+df$dataset <- factor(df$dataset, levels = c("Spontaneous (CANDOR)", "Planned (LibriTTS)"))
+df$parse_type <- factor(df$parse_type, levels = c("Bracketing", "Full Parse"))
+
+plot <- ggplot(df, aes(x = condition, y = nats_seq, fill = condition)) +
+  geom_col(color = "black", size = 0.2) +
+  geom_errorbar(
+    aes(ymin = nats_seq - stdev, ymax = nats_seq + stdev),
+    width = 0.2,
+    linewidth = 0.4
+  ) +
+  facet_wrap(~ dataset + parse_type, ncol = 4, scales = "free_y") +
+  
+  scale_fill_manual(values = c(
+    "H(S)" = "#888888",
+    "H(S|W)" = "#556B8F",
+    "H(S|P_p)" = "#E28F41",
+    "H(S|P_d)" = "#4E9C81",
+    "H(S|W,P_p)" = "#D95F02",
+    "H(S|W,P_d)" = "#1B9E77"
+  )) +
+  
+  # Force legend into a single horizontal row
+  guides(fill = guide_legend(nrow = 1)) +
+  
+  labs(
+    x = NULL, # Remove "Input Modality" label as legend explains it
+    y = "Entropy (nats per sequence)",
+    fill = "Input Condition"
+  ) +
+  theme_bw(base_size = 11) +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.box = "horizontal",
+    strip.background = element_rect(fill = "#f0f0f0"),
+    strip.text = element_text(face = "bold"),
+    panel.grid.major.x = element_blank()
+  )
+
+print(plot)
+
+ggsave("bar.pdf", plot, width = 8, height = 3, dpi = 300)
+```
+
+
+
 
