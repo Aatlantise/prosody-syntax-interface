@@ -5,6 +5,7 @@ import os
 import json
 import pandas as pd
 import re
+from constituency.util import remove_punctuation
 
 
 def analyze_surprisal_vs_features(jsonl_path, csv_path):
@@ -19,6 +20,9 @@ def analyze_surprisal_vs_features(jsonl_path, csv_path):
                 continue
             data = json.loads(line)
 
+            if "text" not in data or "pause" not in data or "duration" not in data or "parse" not in data:
+                continue
+
             if 'candor'in jsonl_path and (
                     # data['text'][-1] not in ['.', '?', '!'] or
                     # len(data['text'].split()) < 5 or
@@ -28,7 +32,7 @@ def analyze_surprisal_vs_features(jsonl_path, csv_path):
 
             # Feature A: Sentence length in words (split clean text)
             # Stripping punctuation/quotes to get true word tokens
-            clean_text = data['text'].replace('"', '').replace('?', '').replace('.', '').replace(',', '')
+            clean_text = remove_punctuation(['text'])
             word_count = len(clean_text.split())
 
             # Feature B: Length in syntactic parse tokens
@@ -48,6 +52,8 @@ def analyze_surprisal_vs_features(jsonl_path, csv_path):
                 'parse_token_count': parse_token_count
             })
             idx += 1
+
+    print(len(features_list))
 
     df_features = pd.DataFrame(features_list)
     print(f"Extracted features for {len(df_features)} sentences.")
@@ -101,6 +107,8 @@ if __name__ == "__main__":
             jsonl_data = "data/constituency_corpus.json"
         else:
             jsonl_data = "data/candor_corpus.json"
+            continue
+        break
 
         analysis_df = analyze_surprisal_vs_features(jsonl_data, csv_data)
         # print(analysis_df[['text', 'word_count', 'surprisal']].head(10))

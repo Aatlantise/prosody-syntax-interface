@@ -1,0 +1,348 @@
+Analyzing candor_duration_dyck...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_duration_dyck/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.9586 (p = 0.0)
+  Spearman r: 0.9164 (p = 0.0)
+  *Interpretation: Explains roughly 91.9% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.9632 (p = 0.0)
+  Spearman r: 0.9167 (p = 0.0)
+  *Interpretation: Explains roughly 92.8% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -2.8885      0.009   -328.859      0.000      -2.906      -2.871
+word_count            0.4936      0.002    240.942      0.000       0.490       0.498
+parse_token_count     0.2749      0.001    317.892      0.000       0.273       0.277
+=====================================================================================
+
+Overall Model R-squared: 0.9395
+Analyzing candor_duration_nopunct...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_duration_nopunct/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.9385 (p = 0.0)
+  Spearman r: 0.8982 (p = 0.0)
+  *Interpretation: Explains roughly 88.1% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.9147 (p = 0.0)
+  Spearman r: 0.8493 (p = 0.0)
+  *Interpretation: Explains roughly 83.7% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -1.4326      0.030    -48.004      0.000      -1.491      -1.374
+word_count            2.3944      0.007    335.085      0.000       2.380       2.408
+parse_token_count     0.0742      0.002     38.031      0.000       0.070       0.078
+=====================================================================================
+
+Overall Model R-squared: 0.8814
+Analyzing candor_dyck...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_dyck/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.9603 (p = 0.0)
+  Spearman r: 0.9095 (p = 0.0)
+  *Interpretation: Explains roughly 92.2% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.9721 (p = 0.0)
+  Spearman r: 0.9417 (p = 0.0)
+  *Interpretation: Explains roughly 94.5% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -2.4568      0.008   -296.824      0.000      -2.473      -2.441
+word_count            0.3919      0.002    203.003      0.000       0.388       0.396
+parse_token_count     0.3468      0.001    425.514      0.000       0.345       0.348
+=====================================================================================
+
+Overall Model R-squared: 0.9516
+Analyzing candor_nopunct...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_nopunct/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.9456 (p = 0.0)
+  Spearman r: 0.9139 (p = 0.0)
+  *Interpretation: Explains roughly 89.4% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.9221 (p = 0.0)
+  Spearman r: 0.8656 (p = 0.0)
+  *Interpretation: Explains roughly 85.0% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                 1.0887      0.029     38.091      0.000       1.033       1.145
+word_count            2.4325      0.007    355.459      0.000       2.419       2.446
+parse_token_count     0.0823      0.002     44.026      0.000       0.079       0.086
+=====================================================================================
+
+Overall Model R-squared: 0.8949
+Analyzing candor_pause_dyck...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_pause_dyck/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.9574 (p = 0.0)
+  Spearman r: 0.9141 (p = 0.0)
+  *Interpretation: Explains roughly 91.7% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.9662 (p = 0.0)
+  Spearman r: 0.9288 (p = 0.0)
+  *Interpretation: Explains roughly 93.4% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -2.7207      0.009   -316.909      0.000      -2.738      -2.704
+word_count            0.4197      0.002    209.610      0.000       0.416       0.424
+parse_token_count     0.3066      0.001    362.708      0.000       0.305       0.308
+=====================================================================================
+
+Overall Model R-squared: 0.9422
+Analyzing candor_pause_nopunct...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_pause_nopunct/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.9416 (p = 0.0)
+  Spearman r: 0.9088 (p = 0.0)
+  *Interpretation: Explains roughly 88.7% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.9184 (p = 0.0)
+  Spearman r: 0.8607 (p = 0.0)
+  *Interpretation: Explains roughly 84.3% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -0.1538      0.029     -5.293      0.000      -0.211      -0.097
+word_count            2.3699      0.007    340.718      0.000       2.356       2.384
+parse_token_count     0.0828      0.002     43.585      0.000       0.079       0.087
+=====================================================================================
+
+Overall Model R-squared: 0.8873
+Analyzing candor_text_duration_dyck...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_text_duration_dyck/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.7121 (p = 0.0)
+  Spearman r: 0.6444 (p = 0.0)
+  *Interpretation: Explains roughly 50.7% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.6990 (p = 0.0)
+  Spearman r: 0.6064 (p = 0.0)
+  *Interpretation: Explains roughly 48.9% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -2.3774      0.012   -193.597      0.000      -2.401      -2.353
+word_count            0.3177      0.003    110.939      0.000       0.312       0.323
+parse_token_count     0.0400      0.001     33.118      0.000       0.038       0.042
+=====================================================================================
+
+Overall Model R-squared: 0.5089
+Analyzing candor_text_duration_nopunct...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_text_duration_nopunct/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.6662 (p = 0.0)
+  Spearman r: 0.6112 (p = 0.0)
+  *Interpretation: Explains roughly 44.4% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.6566 (p = 0.0)
+  Spearman r: 0.5918 (p = 0.0)
+  *Interpretation: Explains roughly 43.1% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -1.8391      0.018   -101.146      0.000      -1.875      -1.803
+word_count            0.3896      0.004     89.489      0.000       0.381       0.398
+parse_token_count     0.0401      0.001     33.752      0.000       0.038       0.042
+=====================================================================================
+
+Overall Model R-squared: 0.4460
+Analyzing candor_text_dyck...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_text_dyck/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.6944 (p = 0.0)
+  Spearman r: 0.6381 (p = 0.0)
+  *Interpretation: Explains roughly 48.2% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.6799 (p = 0.0)
+  Spearman r: 0.6003 (p = 0.0)
+  *Interpretation: Explains roughly 46.2% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -2.0483      0.012   -176.545      0.000      -2.071      -2.026
+word_count            0.2990      0.003    110.514      0.000       0.294       0.304
+parse_token_count     0.0300      0.001     26.298      0.000       0.028       0.032
+=====================================================================================
+
+Overall Model R-squared: 0.4834
+Analyzing candor_text_nopunct...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_text_nopunct/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.6600 (p = 0.0)
+  Spearman r: 0.6084 (p = 0.0)
+  *Interpretation: Explains roughly 43.6% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.6498 (p = 0.0)
+  Spearman r: 0.5881 (p = 0.0)
+  *Interpretation: Explains roughly 42.2% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -1.8089      0.018    -98.440      0.000      -1.845      -1.773
+word_count            0.3950      0.004     89.773      0.000       0.386       0.404
+parse_token_count     0.0377      0.001     31.342      0.000       0.035       0.040
+=====================================================================================
+
+Overall Model R-squared: 0.4375
+Analyzing candor_text_pause_dyck...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_text_pause_dyck/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.7125 (p = 0.0)
+  Spearman r: 0.6447 (p = 0.0)
+  *Interpretation: Explains roughly 50.8% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.7005 (p = 0.0)
+  Spearman r: 0.6080 (p = 0.0)
+  *Interpretation: Explains roughly 49.1% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -2.2762      0.012   -190.706      0.000      -2.300      -2.253
+word_count            0.3005      0.003    107.933      0.000       0.295       0.306
+parse_token_count     0.0429      0.001     36.464      0.000       0.041       0.045
+=====================================================================================
+
+Overall Model R-squared: 0.5098
+Analyzing candor_text_pause_nopunct...
+Parsing features from JSONL file...
+Extracted features for 297930 sentences.
+Loading surprisal data from outputs/candor_text_pause_nopunct/cross_validation_results.csv...
+Successfully aligned 297930 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.6677 (p = 0.0)
+  Spearman r: 0.6133 (p = 0.0)
+  *Interpretation: Explains roughly 44.6% of individual surprisal variance.*
+
+Surprisal vs. PARSE TOKEN COUNT:
+  Pearson  r: 0.6584 (p = 0.0)
+  Spearman r: 0.5939 (p = 0.0)
+  *Interpretation: Explains roughly 43.3% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+=====================================================================================
+                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------
+const                -1.8761      0.018   -102.649      0.000      -1.912      -1.840
+word_count            0.3895      0.004     89.014      0.000       0.381       0.398
+parse_token_count     0.0416      0.001     34.774      0.000       0.039       0.044
+=====================================================================================
+
+Overall Model R-squared: 0.4481
