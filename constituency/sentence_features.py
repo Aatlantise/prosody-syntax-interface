@@ -5,7 +5,8 @@ import os
 import json
 import pandas as pd
 import re
-from constituency.util import remove_punctuation
+from constituency.util import remove_punctuation, load_jsonl_data
+import argparse
 
 
 def analyze_surprisal_vs_features(jsonl_path, csv_path):
@@ -13,15 +14,21 @@ def analyze_surprisal_vs_features(jsonl_path, csv_path):
     print("Parsing features from JSONL file...")
     features_list = []
 
+    # args = argparse.Namespace()
+    # args.data = jsonl_path
+    # args.dyck = 'dyck' in csv_path
+    # args.nopunct = 'nopunct' in csv_path
+    # args.debug = False
+    #
+    # data = load_jsonl_data(args)
+    # print(f"Read data with {len(data)} rows...")
+
     with open(jsonl_path, 'r', encoding='utf-8') as f:
         idx = 0
         for line in f:
             if not line.strip():
                 continue
             data = json.loads(line)
-
-            if "text" not in data or "pause" not in data or "duration" not in data or "parse" not in data:
-                continue
 
             if 'candor'in jsonl_path and (
                     # data['text'][-1] not in ['.', '?', '!'] or
@@ -32,7 +39,7 @@ def analyze_surprisal_vs_features(jsonl_path, csv_path):
 
             # Feature A: Sentence length in words (split clean text)
             # Stripping punctuation/quotes to get true word tokens
-            clean_text = remove_punctuation(['text'])
+            clean_text = remove_punctuation(data['text'])
             word_count = len(clean_text.split())
 
             # Feature B: Length in syntactic parse tokens
@@ -104,11 +111,10 @@ if __name__ == "__main__":
         csv_data = f"outputs/{model}/cross_validation_results.csv"
 
         if 'libri' in model:
-            jsonl_data = "data/constituency_corpus.json"
+            jsonl_data = "data/constituency_corpus_reldur.json"
         else:
             jsonl_data = "data/candor_corpus.json"
             continue
-        break
 
         analysis_df = analyze_surprisal_vs_features(jsonl_data, csv_data)
         # print(analysis_df[['text', 'word_count', 'surprisal']].head(10))

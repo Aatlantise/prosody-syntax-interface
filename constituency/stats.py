@@ -19,7 +19,8 @@ candor = {
 import pandas as pd
 import numpy as np
 from scipy import stats
-
+import sys
+import json
 
 def fast_paired_permutation(diffs, n_resamples=10000, batch_size=100):
     obs_mean = np.mean(diffs)
@@ -148,8 +149,147 @@ def calculate_aggregate_mi(cond_a, cond_b):
 
     return mi, se_mi, p_val
 
-# --- Example Usage ---
-condition_1 = "libri_autoreg"
-condition_2 = "libri_pause"
-# analyze_conditions(condition_1, condition_2)
-calculate_aggregate_mi(condition_1, condition_2)
+def example_useage():
+    # --- Example Usage ---
+    condition_1 = "libri_autoreg"
+    condition_2 = "libri_pause"
+    # analyze_conditions(condition_1, condition_2)
+    calculate_aggregate_mi(condition_1, condition_2)
+
+
+
+
+def run_comprehensive_significance_analysis(jsonl_path, csv_baseline_path, csv_prosody_path, k_top=5):
+    # --- STEP 1: Load text mappings from JSONL file ---
+    print("Reading text data from JSONL...")
+    text_mapping = {}
+    with open(jsonl_path, 'r', encoding='utf-8') as f:
+        idx = 0
+        for line in f:
+            if not line.strip():
+                continue
+
+            data = json.loads(line)
+            if 'candor' in jsonl_path and data['text'][0].islower():
+                continue
+
+            text_mapping[idx] = {
+                'text': data['text'],
+                'parse': data['parse']
+            }
+            idx += 1
+    print(f"Read {len(text_mapping)} sentences.")
+
+    # --- STEP 2: Load and align surprisal CSV files ---
+    print("Loading and aligning surprisal metrics...")
+    df_base = pd.read_csv(csv_baseline_path)
+    df_pros = pd.read_csv(csv_prosody_path)
+
+    # Merge on original_index to ensure exact paired sentence alignment
+    merged_df = pd.merge(
+        df_base,
+        df_pros,
+        on="original_index",
+        suffixes=('_baseline', '_prosody')
+    )
+    n_samples = len(merged_df)
+    print(f"Successfully aligned and matched {n_samples} sentences.\n")
+
+    # Extract aligned vectors
+    surprisal_base = merged_df['surprisal_baseline']
+    surprisal_pros = merged_df['surprisal_prosody']
+
+    # --- STEP 3: Descriptive Summary ---
+    mean_base = surprisal_base.mean()
+    mean_pros = surprisal_pros.mean()
+    mean_diff = mean_base - mean_pros
+
+    print("=======================================================")
+    print(" 1. DESCRIPTIVE SUMMARY")
+    print("=======================================================")
+    print(f"Mean Total Surprisal per Sequence (Baseline): {mean_base:.4f} nats")
+    print(f"Mean Total Surprisal per Sequence (Prosody):  {mean_pros:.4f} nats")
+    print(f"Absolute Drop in Mean Total Surprisal:        {mean_diff:.4f} nats saved")
+
+    # --- STEP 4: Statistical Significance Testing ---
+    print("\n=======================================================")
+    print(" 2. STATISTICAL SIGNIFICANCE TESTS")
+    print("=======================================================")
+
+    # Wilcoxon Signed-Rank Test (Non-parametric, safe against heavy-tailed sentence lengths)
+    wilcoxon_stat, wilcoxon_p = stats.wilcoxon(surprisal_base, surprisal_pros)
+    print(f"Wilcoxon Signed-Rank Test:")
+    print(f"  Statistic: {wilcoxon_stat:.2f}")
+    print(f"  p-value:   {wilcoxon_p}")
+    if wilcoxon_p < 0.05:
+        print("  Result:    Statistically Significant (p < 0.05)")
+    else:
+        print("  Result:    Not Statistically Significant")
+
+    # Paired t-test (Parametric)
+    t_stat, t_p = stats.ttest_rel(surprisal_base, surprisal_pros)
+    print(f"\nPaired t-test (Baseline Context):")
+    print(f"  t-statistic: {t_stat:.4f}")
+    print(f"  p-value:     {t_p}")
+
+    # --- STEP 5: Top K Qualitative Extraction ---
+    # Positive difference means baseline had higher uncertainty than prosody
+    merged_df['surprisal_drop'] = surprisal_base - surprisal_pros
+    top_boosts = merged_df.sort_values(by='surprisal_drop', ascending=False).head(k_top)
+
+    print("\n=======================================================")
+    print(f" 3. TOP {k_top} SENTENCES WHERE PROSODY ASSISTED THE MOST")
+    print("=======================================================")
+
+    for rank, (_, row) in enumerate(top_boosts.iterrows(), 1):
+        idx = int(row['original_index'])
+        sentence_text = text_mapping[idx]['text']
+        sentence_parse = text_mapping[idx]['parse']
+
+        print(f"\n[Rank {rank}] Original Line Index: {idx} (Fold {int(row['fold_baseline'])})")
+        print(f"  TEXT:    \"{sentence_text}\"")
+        print(f"  PARSE:   {sentence_parse}")
+        print(f"  METRICS:")
+        print(f"    - Baseline Surprisal: {row['surprisal_baseline']:.4f} nats")
+        print(f"    - Prosody Surprisal:  {row['surprisal_prosody']:.4f} nats")
+        print(f"    - Absolute Drop:      {row['surprisal_drop']:.4f} nats saved")
+        print("-" * 55)
+
+    return merged_df
+
+
+# --- Execution ---
+# if __name__ == "__main__":
+#     jsonl_data = "your_dataset.jsonl"
+#     csv_baseline = "model_baseline_results.csv"
+#     csv_prosody = "model_prosody_results.csv"
+#
+#     analysis_df = run_comprehensive_significance_analysis(
+#         jsonl_path=jsonl_data,
+#         csv_baseline_path=csv_baseline,
+#         csv_prosody_path=csv_prosody,
+#         k_top=5
+#     )
+
+
+# --- How to run it ---
+if __name__ == "__main__":
+    # Replace these paths with your actual CSV file locations
+    assert len(sys.argv) == 3
+    arg1 = sys.argv[1]
+    arg2 = sys.argv[2]
+    csv_1 = f"outputs/{arg1}/cross_validation_results.csv"
+    csv_2 = f"outputs/{arg2}/cross_validation_results.csv"
+
+    if 'libri' in arg1:
+        jsonl_data = "data/constituency_corpus.json"
+    else:
+        jsonl_data = "data/candor_corpus.json"
+
+
+    analysis_df = run_comprehensive_significance_analysis(
+        jsonl_path=jsonl_data,
+        csv_baseline_path=csv_1,
+        csv_prosody_path=csv_2,
+        k_top=5
+    )
