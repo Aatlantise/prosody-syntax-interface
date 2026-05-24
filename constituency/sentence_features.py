@@ -44,19 +44,22 @@ def analyze_surprisal_vs_features(jsonl_path, csv_path):
 
             # Feature B: Length in syntactic parse tokens
             # We split the 'parse' string by spaces to count every bracket and POS tag
-            if 'dyck' in csv_path:
-                parse_token_count = len([p for p in data['parse'] if p in "()"])
-            else: # nopunct
-                raw_parse = data['parse']
-                clean_parse = re.sub(r' (''|\.|,|\-LRB\-|\-RRB\-|\:|``|SYM)', '', raw_parse)
-                spaced_parse = re.sub(r'([()])', r' \1 ', clean_parse)
-                parse_token_count = len(spaced_parse.split())
+            current_depth = 0
+            parse_depth = 0
+
+            for char in data['parse']:
+                if char == '(':
+                    current_depth += 1
+                    if current_depth > parse_depth:
+                        parse_depth = current_depth
+                elif char == ')':
+                    current_depth -= 1
 
             features_list.append({
                 'original_index': idx,
                 'text': clean_text,
                 'word_count': word_count,
-                'parse_token_count': parse_token_count
+                'parse_depth': parse_depth
             })
             idx += 1
 
@@ -74,7 +77,7 @@ def analyze_surprisal_vs_features(jsonl_path, csv_path):
     print(f"Successfully aligned {len(merged_df)} items for analysis.\n")
 
     # 3. Calculate Correlation Coefficients
-    features_to_test = ['word_count', 'parse_token_count']
+    features_to_test = ['word_count', 'parse_depth']
 
     print("=== Correlation Analysis ===")
     for feat in features_to_test:
@@ -90,7 +93,7 @@ def analyze_surprisal_vs_features(jsonl_path, csv_path):
     print("\n=== Multiple Linear Regression ===")
     print("Determining unique contribution of words vs. parse tokens to total surprisal:")
 
-    X = merged_df[['word_count', 'parse_token_count']]
+    X = merged_df[['word_count', 'parse_depth']]
     X = sm.add_constant(X)  # Adds an intercept to the linear model
     y = merged_df['surprisal']
 
@@ -107,6 +110,8 @@ if __name__ == "__main__":
     models = os.listdir("outputs/")
 
     for model in models:
+        if '.txt' in model:
+            continue
         print(f"Analyzing {model}...")
         csv_data = f"outputs/{model}/cross_validation_results.csv"
 
