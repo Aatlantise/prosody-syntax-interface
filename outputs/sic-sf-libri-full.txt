@@ -1,0 +1,129 @@
+aatlantise@hyun-laptop:/mnt/d/GitHub/prosody-syntax-interface$ python3 -m constituency.sic_sentence_features libri_nopun
+ct libri_pause_nopunct
+--- Step 1: Parsing Structural Features from JSONL ---
+Extracted features for 43730 sentences.
+
+--- Step 2: Aligning Baselines and Calculating SIC ---
+Successfully aligned 43682 instances for multi-variable SIC analysis.
+
+=======================================================
+ 1. CORRELATION ANALYSIS (SIC vs. INDIVIDUAL FEATURES)
+=======================================================
+
+SIC vs. WORD COUNT:
+  Pearson  r: -0.0034 (p = 0.477334743053139)
+  Spearman r: -0.0145 (p = 0.0025012395871639955)
+
+SIC vs. PARSE DEPTH:
+  Pearson  r: -0.0092 (p = 0.05349331915173611)
+  Spearman r: -0.0108 (p = 0.02446820681382702)
+
+=======================================================
+ 2. MULTIPLE LINEAR REGRESSION (CONTROLLING INTERACTION)
+=======================================================
+Predicting SIC payload using both length and structural depth simultaneously:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const           2.0411      0.039     52.786      0.000       1.965       2.117
+word_count      0.0024      0.002      1.200      0.230      -0.002       0.006
+parse_depth    -0.0133      0.006     -2.160      0.031      -0.025      -0.001
+===============================================================================
+
+Overall Model R-squared (Variance in SIC explained): 0.0001
+aatlantise@hyun-laptop:/mnt/d/GitHub/prosody-syntax-interface$ python3 -m constituency.sic_sentence_features libri_nopunct libri_duration_nopunct
+--- Step 1: Parsing Structural Features from JSONL ---
+Extracted features for 43730 sentences.
+
+--- Step 2: Aligning Baselines and Calculating SIC ---
+Successfully aligned 43682 instances for multi-variable SIC analysis.
+
+=======================================================
+ 1. CORRELATION ANALYSIS (SIC vs. INDIVIDUAL FEATURES)
+=======================================================
+
+SIC vs. WORD COUNT:
+  Pearson  r: -0.0364 (p = 2.7125530199796578e-14)
+  Spearman r: -0.0400 (p = 6.647052635411881e-17)
+
+SIC vs. PARSE DEPTH:
+  Pearson  r: -0.0407 (p = 1.606129982724781e-17)
+  Spearman r: -0.0364 (p = 2.7534356683353844e-14)
+
+=======================================================
+ 2. MULTIPLE LINEAR REGRESSION (CONTROLLING INTERACTION)
+=======================================================
+Predicting SIC payload using both length and structural depth simultaneously:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const           1.8450      0.040     46.107      0.000       1.767       1.923
+word_count     -0.0035      0.002     -1.681      0.093      -0.008       0.001
+parse_depth    -0.0266      0.006     -4.180      0.000      -0.039      -0.014
+===============================================================================
+
+Overall Model R-squared (Variance in SIC explained): 0.0017
+aatlantise@hyun-laptop:/mnt/d/GitHub/prosody-syntax-interface$ python3 -m constituency.sic_sentence_features libri_text_nopunct libri_text_pause_nopunct
+--- Step 1: Parsing Structural Features from JSONL ---
+Extracted features for 43730 sentences.
+
+--- Step 2: Aligning Baselines and Calculating SIC ---
+Successfully aligned 43682 instances for multi-variable SIC analysis.
+
+=======================================================
+ 1. CORRELATION ANALYSIS (SIC vs. INDIVIDUAL FEATURES)
+=======================================================
+
+SIC vs. WORD COUNT:
+  Pearson  r: -0.0332 (p = 3.7429119104863194e-12)
+  Spearman r: -0.0317 (p = 3.399223602559258e-11)
+
+SIC vs. PARSE DEPTH:
+  Pearson  r: -0.0190 (p = 7.254414970780362e-05)
+  Spearman r: -0.0259 (p = 6.49186700492724e-08)
+
+=======================================================
+ 2. MULTIPLE LINEAR REGRESSION (CONTROLLING INTERACTION)
+=======================================================
+Predicting SIC payload using both length and structural depth simultaneously:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -0.7399      0.062    -11.935      0.000      -0.861      -0.618
+word_count     -0.0196      0.003     -6.084      0.000      -0.026      -0.013
+parse_depth     0.0209      0.010      2.119      0.034       0.002       0.040
+===============================================================================
+
+Overall Model R-squared (Variance in SIC explained): 0.0012
+aatlantise@hyun-laptop:/mnt/d/GitHub/prosody-syntax-interface$ python3 -m constituency.sic_sentence_features libri_text_nopunct libri_text_duration_nopunct
+--- Step 1: Parsing Structural Features from JSONL ---
+Extracted features for 43730 sentences.
+
+--- Step 2: Aligning Baselines and Calculating SIC ---
+Successfully aligned 43682 instances for multi-variable SIC analysis.
+
+=======================================================
+ 1. CORRELATION ANALYSIS (SIC vs. INDIVIDUAL FEATURES)
+=======================================================
+
+SIC vs. WORD COUNT:
+  Pearson  r: -0.0176 (p = 0.00022768492460233493)
+  Spearman r: -0.0190 (p = 7.433107743702388e-05)
+
+SIC vs. PARSE DEPTH:
+  Pearson  r: -0.0128 (p = 0.007514660399800609)
+  Spearman r: -0.0155 (p = 0.001172991386003437)
+
+=======================================================
+ 2. MULTIPLE LINEAR REGRESSION (CONTROLLING INTERACTION)
+=======================================================
+Predicting SIC payload using both length and structural depth simultaneously:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -0.6092      0.061     -9.994      0.000      -0.729      -0.490
+word_count     -0.0081      0.003     -2.549      0.011      -0.014      -0.002
+parse_depth     0.0023      0.010      0.240      0.811      -0.017       0.021
+===============================================================================
+
+Overall Model R-squared (Variance in SIC explained): 0.0003

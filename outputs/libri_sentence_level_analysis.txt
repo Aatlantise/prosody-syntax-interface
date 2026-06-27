@@ -1,0 +1,300 @@
+Analyzing libri_duration_dyck...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_duration_dyck/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.8927 (p = 0.0)
+  Spearman r: 0.9157 (p = 0.0)
+  *Interpretation: Explains roughly 79.7% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.7792 (p = 0.0)
+  Spearman r: 0.8462 (p = 0.0)
+  *Interpretation: Explains roughly 60.7% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -3.1348      0.061    -51.380      0.000      -3.254      -3.015
+word_count      0.7186      0.003    232.815      0.000       0.713       0.725
+parse_depth     0.7852      0.009     83.272      0.000       0.767       0.804
+===============================================================================
+
+Overall Model R-squared: 0.8247
+Analyzing libri_duration_nopunct...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_duration_nopunct/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.8670 (p = 0.0)
+  Spearman r: 0.8838 (p = 0.0)
+  *Interpretation: Explains roughly 75.2% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.7405 (p = 0.0)
+  Spearman r: 0.8044 (p = 0.0)
+  *Interpretation: Explains roughly 54.8% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -4.3229      0.196    -22.055      0.000      -4.707      -3.939
+word_count      2.0394      0.010    205.678      0.000       2.020       2.059
+parse_depth     1.8161      0.030     59.949      0.000       1.757       1.875
+===============================================================================
+
+Overall Model R-squared: 0.7706
+Analyzing libri_dyck...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_dyck/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.8920 (p = 0.0)
+  Spearman r: 0.8981 (p = 0.0)
+  *Interpretation: Explains roughly 79.6% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.7805 (p = 0.0)
+  Spearman r: 0.8548 (p = 0.0)
+  *Interpretation: Explains roughly 60.9% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -2.1782      0.060    -36.007      0.000      -2.297      -2.060
+word_count      0.7079      0.003    231.329      0.000       0.702       0.714
+parse_depth     0.7904      0.009     84.540      0.000       0.772       0.809
+===============================================================================
+
+Overall Model R-squared: 0.8244
+Analyzing libri_nopunct...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_nopunct/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.8712 (p = 0.0)
+  Spearman r: 0.8800 (p = 0.0)
+  *Interpretation: Explains roughly 75.9% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.7370 (p = 0.0)
+  Spearman r: 0.8030 (p = 0.0)
+  *Interpretation: Explains roughly 54.3% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -1.9505      0.192    -10.140      0.000      -2.327      -1.573
+word_count      2.0665      0.010    212.382      0.000       2.047       2.086
+parse_depth     1.6684      0.030     56.123      0.000       1.610       1.727
+===============================================================================
+
+Overall Model R-squared: 0.7753
+Analyzing libri_pause_dyck...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_pause_dyck/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.8903 (p = 0.0)
+  Spearman r: 0.9117 (p = 0.0)
+  *Interpretation: Explains roughly 79.3% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.7753 (p = 0.0)
+  Spearman r: 0.8418 (p = 0.0)
+  *Interpretation: Explains roughly 60.1% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -2.9079      0.062    -47.001      0.000      -3.029      -2.787
+word_count      0.7189      0.003    229.711      0.000       0.713       0.725
+parse_depth     0.7689      0.010     80.415      0.000       0.750       0.788
+===============================================================================
+
+Overall Model R-squared: 0.8193
+Analyzing libri_pause_nopunct...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_pause_nopunct/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.8678 (p = 0.0)
+  Spearman r: 0.8852 (p = 0.0)
+  *Interpretation: Explains roughly 75.3% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.7397 (p = 0.0)
+  Spearman r: 0.8038 (p = 0.0)
+  *Interpretation: Explains roughly 54.7% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -3.9428      0.193    -20.432      0.000      -4.321      -3.565
+word_count      2.0204      0.010    206.971      0.000       2.001       2.040
+parse_depth     1.7625      0.030     59.098      0.000       1.704       1.821
+===============================================================================
+
+Overall Model R-squared: 0.7713
+Analyzing libri_text_duration_nopunct...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_text_duration_nopunct/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.3719 (p = 0.0)
+  Spearman r: 0.5685 (p = 0.0)
+  *Interpretation: Explains roughly 13.8% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.3750 (p = 0.0)
+  Spearman r: 0.4870 (p = 0.0)
+  *Interpretation: Explains roughly 14.1% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -3.4612      0.240    -14.421      0.000      -3.932      -2.991
+word_count      0.3803      0.012     31.325      0.000       0.357       0.404
+parse_depth     1.2298      0.037     33.154      0.000       1.157       1.303
+===============================================================================
+
+Overall Model R-squared: 0.1595
+Analyzing libri_text_dyck...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_text_dyck/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.5161 (p = 0.0)
+  Spearman r: 0.6334 (p = 0.0)
+  *Interpretation: Explains roughly 26.6% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.4949 (p = 0.0)
+  Spearman r: 0.5651 (p = 0.0)
+  *Interpretation: Explains roughly 24.5% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -2.7386      0.085    -32.313      0.000      -2.905      -2.573
+word_count      0.2339      0.004     54.564      0.000       0.226       0.242
+parse_depth     0.5319      0.013     40.611      0.000       0.506       0.558
+===============================================================================
+
+Overall Model R-squared: 0.2931
+Analyzing libri_text_nopunct...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_text_nopunct/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.3636 (p = 0.0)
+  Spearman r: 0.5645 (p = 0.0)
+  *Interpretation: Explains roughly 13.2% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.3719 (p = 0.0)
+  Spearman r: 0.4801 (p = 0.0)
+  *Interpretation: Explains roughly 13.8% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -3.4130      0.231    -14.776      0.000      -3.866      -2.960
+word_count      0.3408      0.012     29.169      0.000       0.318       0.364
+parse_depth     1.2190      0.036     34.146      0.000       1.149       1.289
+===============================================================================
+
+Overall Model R-squared: 0.1548
+Analyzing libri_text_pause_nopunct...
+Parsing features from JSONL file...
+43682
+Extracted features for 43682 sentences.
+Loading surprisal data from outputs/libri_text_pause_nopunct/cross_validation_results.csv...
+Successfully aligned 43682 items for analysis.
+
+=== Correlation Analysis ===
+
+Surprisal vs. WORD COUNT:
+  Pearson  r: 0.3778 (p = 0.0)
+  Spearman r: 0.5711 (p = 0.0)
+  *Interpretation: Explains roughly 14.3% of individual surprisal variance.*
+
+Surprisal vs. PARSE DEPTH:
+  Pearson  r: 0.3787 (p = 0.0)
+  Spearman r: 0.4872 (p = 0.0)
+  *Interpretation: Explains roughly 14.3% of individual surprisal variance.*
+
+=== Multiple Linear Regression ===
+Determining unique contribution of words vs. parse tokens to total surprisal:
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const          -3.4972      0.240    -14.558      0.000      -3.968      -3.026
+word_count      0.3945      0.012     32.463      0.000       0.371       0.418
+parse_depth     1.2252      0.037     33.000      0.000       1.152       1.298
+===============================================================================
+
+Overall Model R-squared: 0.1636

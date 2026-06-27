@@ -250,7 +250,7 @@ library(tidyr)
 # Using the values from our previous calculations and your tables
 df <- data.frame(
   dataset = rep(c("Spontaneous (CANDOR)", "Planned (LibriTTS)"), each = 12),
-  parse_type = rep(rep(c("Bracketing", "Full Parse"), each = 6), 2),
+  parse_type = rep(rep(c("Brackets", "Full Parse"), each = 6), 2),
   condition = rep(c("H(S)", "H(S|W)", "H(S|P_p)", "H(S|W,P_p)", "H(S|P_d)", "H(S|W,P_d)"), 4),
   nats_seq = c(
     # CANDOR Bracketing
@@ -274,7 +274,7 @@ df <- data.frame(
 
 df$condition <- factor(df$condition, levels = c("H(S)", "H(S|P_p)", "H(S|P_d)", "H(S|W)", "H(S|W,P_p)", "H(S|W,P_d)"))
 df$dataset <- factor(df$dataset, levels = c("Spontaneous (CANDOR)", "Planned (LibriTTS)"))
-df$parse_type <- factor(df$parse_type, levels = c("Bracketing", "Full Parse"))
+df$parse_type <- factor(df$parse_type, levels = c("Brackets", "Full Parse"))
 
 plot <- ggplot(df, aes(x = condition, y = nats_seq, fill = condition)) +
   geom_col(color = "black", size = 0.2) +
@@ -319,6 +319,129 @@ print(plot)
 ggsave("bar.pdf", plot, width = 8, height = 3, dpi = 300)
 ```
 
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(readr)
+
+# 1. Load the 4 CSV files
+df_dur_np   <- read_csv("corr_candor_nopunct_candor_duration_nopunct.csv")
+df_pause_np <- read_csv("corr_candor_nopunct_candor_pause_nopunct.csv")
+df_pause_dk <- read_csv("corr_candor_dyck_candor_pause_dyck.csv")
+df_dur_dk   <- read_csv("corr_candor_dyck_candor_duration_dyck.csv")
+
+# 2. Process subsets
+process_subset <- function(df, modality, task) {
+  df %>%
+    select(word_count, parse_depth, sic) %>%
+    mutate(Modality = modality, Task = task)
+}
+
+clean_dur_np   <- process_subset(df_dur_np,   "Dur", "Full parse")
+clean_pause_np <- process_subset(df_pause_np, "Pau",    "Full parse")
+clean_pause_dk <- process_subset(df_pause_dk, "Pau",    "Brackets")
+clean_dur_dk   <- process_subset(df_dur_dk,   "Dur", "Brackets")
+
+# Combine into one master dataframe
+all_conditions <- bind_rows(clean_dur_np, clean_pause_np, clean_pause_dk, clean_dur_dk)
+
+# 3. Create a downsampled version ONLY for the background scatter points
+# This keeps the plot crisp, readable, and lightweight!
+set.seed(42)
+points_sample <- all_conditions %>%
+  group_by(Modality, Task) %>%
+  slice_sample(n = 10000) %>% # 10k points per condition = 40k total points
+  ungroup() %>%
+  pivot_longer(
+    cols = c(word_count, parse_depth),
+    names_to = "Metric_Type",
+    values_to = "X_Value"
+  ) %>%
+  mutate(
+    Metric_Type = if_else(Metric_Type == "word_count", "Sent length (words)", "Max parse depth")
+  )
+
+# 4. Format the full dataset for the smooth lines layer
+lines_data <- all_conditions %>%
+  pivot_longer(
+    cols = c(word_count, parse_depth),
+    names_to = "Metric_Type",
+    values_to = "X_Value"
+  ) %>%
+  mutate(
+    Metric_Type = if_else(Metric_Type == "word_count", "Sent length (words)", "Max parse depth")
+  )
+
+```
+
+```{r}
+academic_colors <- c("Pau" = "#E28F41", "Dur" = "#4E9C81")
+
+g <- ggplot() +
+  # LAYER 1: The Background Scatter Cloud (Using the downsample)
+  # alpha = 0.02 makes overlapping points build up density naturally
+  geom_point(data = points_sample, 
+           aes(x = X_Value, y = sic, color = Modality, shape = Task), 
+           alpha = 0.03, size = 0.4, show.legend = FALSE) +
+  
+  # LAYER 2: The Main Linear Fit Lines (Using the full dataset)
+  geom_smooth(data = lines_data, 
+              aes(x = X_Value, y = sic, color = Modality, linetype = Task),
+              method = "lm", formula = y ~ x, alpha = 0.3, size = 0.4) +
+  
+  # Structural Layout & Scales
+  facet_wrap(~ Metric_Type, nrow = 1, scales = "free_x") +
+  scale_color_manual(values = academic_colors) +
+  scale_shape_manual(values = c("Full parse" = 16, "Brackets" = 17)) +
+  scale_linetype_manual(values = c("Full parse" = "solid", "Brackets" = "dashed")) +
+  
+  coord_cartesian(ylim = c(-10, 15)) +
+  
+  # Labels and Guides
+  labs(
+    x = "CANDOR sentence features",
+    y = expression(paste(iota, "(s) -", iota, "(s | p) in nats")),
+    # color = "Prosodic feature",
+    # linetype = "Parse type",
+    color = "",
+    linetype = ""
+  ) +
+  
+  # Style Guidelines
+  theme_bw(base_size = 12) + 
+  theme(
+    strip.background = element_rect(fill = "#f8f9fa", color = "#dee2e6"),
+    strip.text = element_text(face = "bold", size = 11, color = "#212529"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "#f1f3f5"),
+    legend.position = "bottom",
+    # legend.box = "horizontal",
+    legend.box = "horizontal",
+    legend.margin = margin(t = -5, b = 5),
+    # axis.title = element_text(face = "bold")
+  ) +
+  # # Increase legend visibility for lines
+  # guides(
+  #   color = guide_legend(
+  #     nrow = 1,
+  # order = 1
+  # ),
+  # linetype = guide_legend(
+  #   nrow = 2,
+  # order = 2,
+  # # Forces the linetype legend lines to be a crisp, matching slate color
+  #   override.aes = list(color = "#2c3e50", size = 0.8)
+  # )
+  guides(linetype = guide_legend(
+                                 override.aes = list(color = "#2c3e50", size = 0.5))
+  )
+
+# Preview and save
+print(g)
+ggsave("candor_sic_with_scatterplot.pdf", plot = g, width = 4, height = 3, dpi = 300)
+
+```
 
 
 

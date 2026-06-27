@@ -23,7 +23,7 @@ def analyze_sic_vs_features(jsonl_path, csv_baseline_path, csv_prosody_path):
                 continue
 
             # Feature A: Word Count (Regex-cleaned)
-            clean_text = re.sub(r'[",?.!:]', '', data['text'])
+            clean_text = re.sub(r'[",?.!:-;]', ' ', data['text'])
             word_count = len(clean_text.split())
 
             # Feature B: Parse Tree Depth
@@ -70,25 +70,11 @@ def analyze_sic_vs_features(jsonl_path, csv_baseline_path, csv_prosody_path):
     print(" 1. CORRELATION ANALYSIS (SIC vs. INDIVIDUAL FEATURES)")
     print("=======================================================")
     for feat in ['word_count', 'parse_depth']:
-        pearson_r, p_p = stats.pearsonr(final_df[feat], final_df['sic'])
         spearman_r, p_s = stats.spearmanr(final_df[feat], final_df['sic'])
 
         print(f"\nSIC vs. {feat.upper().replace('_', ' ')}:")
-        print(f"  Pearson  r: {pearson_r:.4f} (p = {p_p})")
-        print(f"  Spearman r: {spearman_r:.4f} (p = {p_s})")
+        print(f"  Spearman r: {spearman_r:.4f} (p = {p_s:.4e})")
 
-    print("\n=======================================================")
-    print(" 2. MULTIPLE LINEAR REGRESSION (CONTROLLING INTERACTION)")
-    print("=======================================================")
-    print("Predicting SIC payload using both length and structural depth simultaneously:")
-
-    X = final_df[['word_count', 'parse_depth']]
-    X = sm.add_constant(X)
-    y = final_df['sic']
-
-    model = sm.OLS(y, X).fit()
-    print(model.summary().tables[1])
-    print(f"\nOverall Model R-squared (Variance in SIC explained): {model.rsquared:.4f}")
 
     return final_df
 
@@ -106,3 +92,5 @@ if __name__ == "__main__":
     jsonl_data = "data/constituency_corpus.json" if 'libri' in arg1 else "data/candor_corpus.json"
 
     analysis_df = analyze_sic_vs_features(jsonl_data, csv_1, csv_2)
+
+    analysis_df.to_csv(f"corr_{arg1}_{arg2}.csv")
