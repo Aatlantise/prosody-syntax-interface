@@ -108,6 +108,7 @@ def single_run(args, tokenizer, tokenized_train, tokenized_eval):
         logging_steps=args.logging_steps,
         eval_steps=args.eval_steps,
         save_steps=args.save_steps,
+        max_grad_norm=1.0,
         save_total_limit=1,
         weight_decay=0.01,
         fp16=args.fp16,
