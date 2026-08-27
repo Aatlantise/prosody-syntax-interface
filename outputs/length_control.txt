@@ -1,0 +1,25 @@
+aatlantise@hyun-laptop:/mnt/d/GitHub/prosody-syntax-interface$ python3 -m constituency.length_control
+=== EXACT LENGTH MATCHING (Pause | Full Parse) ===
+Total Matched Sentences per Dataset: 32,297
+CANDOR   Mean SIC: 2.1291 (Density: 0.1705)
+LibriTTS Mean SIC: 1.9372 (Density: 0.1729)
+Independent t-test on Matched Data: t = 8.7966, p = 1.4441e-18
+
+=== EXACT LENGTH MATCHING (Duration | Full Parse) ===
+Total Matched Sentences per Dataset: 32,297
+CANDOR   Mean SIC: 3.5909 (Density: 0.2942)
+LibriTTS Mean SIC: 1.5529 (Density: 0.1422)
+Independent t-test on Matched Data: t = 83.8032, p = 0.0000e+00
+
+=== OVERALL METRICS CONTROLLED FOR LENGTH ===
+                                      sic  sic_density  sic_residual
+dataset  feature  task
+CANDOR   Duration Dyck Brackets  1.414119     0.132997     -0.485073
+                  Full Parse     3.427402     0.338097      1.528210
+         Pause    Dyck Brackets  1.195189     0.108912     -0.704004
+                  Full Parse     2.040794     0.196516      0.141601
+LibriTTS Duration Dyck Brackets  0.817803     0.108785     -1.267940
+                  Full Parse     1.552988     0.203323     -0.532755
+         Pause    Dyck Brackets  0.726266     0.096586     -1.359477
+                  Full Parse     1.967102     0.244225     -0.118641
+                  
