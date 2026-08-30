@@ -1,0 +1,737 @@
+Loading data...
+Loaded 43682 examples.
+
+--- Starting Fold 1/10 ---
+Fold 1 sizes: Train=39313, Eval=4369
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 77.2348
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '8.715', 'grad_norm': '24.62', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '2.078', 'eval_runtime': '37.28', 'eval_samples_per_second': '117.2', 'eval_steps_per_second': '2.467', 'epoch': '0.6098'}
+{'loss': '2.306', 'grad_norm': '19.73', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.634', 'eval_runtime': '37.27', 'eval_samples_per_second': '117.2', 'eval_steps_per_second': '2.468', 'epoch': '1.22'}
+{'loss': '1.817', 'grad_norm': '8.409', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.418', 'eval_runtime': '37.58', 'eval_samples_per_second': '116.3', 'eval_steps_per_second': '2.448', 'epoch': '1.829'}
+{'loss': '1.545', 'grad_norm': '25.23', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.335', 'eval_runtime': '37.27', 'eval_samples_per_second': '117.2', 'eval_steps_per_second': '2.469', 'epoch': '2.439'}
+{'loss': '1.432', 'grad_norm': '5.346', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.163', 'eval_runtime': '44.14', 'eval_samples_per_second': '98.98', 'eval_steps_per_second': '2.084', 'epoch': '3.049'}
+{'loss': '1.338', 'grad_norm': '4.895', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.119', 'eval_runtime': '44.26', 'eval_samples_per_second': '98.72', 'eval_steps_per_second': '2.079', 'epoch': '3.659'}
+{'loss': '1.222', 'grad_norm': '28.62', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '1.011', 'eval_runtime': '45.06', 'eval_samples_per_second': '96.97', 'eval_steps_per_second': '2.042', 'epoch': '4.268'}
+{'loss': '1.083', 'grad_norm': '4.365', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.7927', 'eval_runtime': '43.79', 'eval_samples_per_second': '99.78', 'eval_steps_per_second': '2.101', 'epoch': '4.878'}
+{'loss': '0.8774', 'grad_norm': '27.8', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.5843', 'eval_runtime': '44.05', 'eval_samples_per_second': '99.18', 'eval_steps_per_second': '2.088', 'epoch': '5.488'}
+{'loss': '0.6334', 'grad_norm': '1.846', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.401', 'eval_runtime': '45.34', 'eval_samples_per_second': '96.36', 'eval_steps_per_second': '2.029', 'epoch': '6.098'}
+{'loss': '0.463', 'grad_norm': '5.373', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.3101', 'eval_runtime': '44.18', 'eval_samples_per_second': '98.88', 'eval_steps_per_second': '2.082', 'epoch': '6.707'}
+{'loss': '0.3856', 'grad_norm': '3.715', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.3003', 'eval_runtime': '43.84', 'eval_samples_per_second': '99.66', 'eval_steps_per_second': '2.099', 'epoch': '7.317'}
+{'loss': '0.3427', 'grad_norm': '5.53', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.2574', 'eval_runtime': '44.09', 'eval_samples_per_second': '99.1', 'eval_steps_per_second': '2.087', 'epoch': '7.927'}
+{'loss': '0.2991', 'grad_norm': '1.139', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.2366', 'eval_runtime': '45.29', 'eval_samples_per_second': '96.47', 'eval_steps_per_second': '2.031', 'epoch': '8.537'}
+{'loss': '0.2775', 'grad_norm': '5.666', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2192', 'eval_runtime': '44.27', 'eval_samples_per_second': '98.68', 'eval_steps_per_second': '2.078', 'epoch': '9.146'}
+{'loss': '0.2638', 'grad_norm': '5.119', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.2067', 'eval_runtime': '43.91', 'eval_samples_per_second': '99.5', 'eval_steps_per_second': '2.095', 'epoch': '9.756'}
+{'loss': '0.2459', 'grad_norm': '2.543', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2057', 'eval_runtime': '45.15', 'eval_samples_per_second': '96.76', 'eval_steps_per_second': '2.038', 'epoch': '10.37'}
+{'loss': '0.2312', 'grad_norm': '1.463', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.1965', 'eval_runtime': '44.71', 'eval_samples_per_second': '97.71', 'eval_steps_per_second': '2.058', 'epoch': '10.98'}
+{'loss': '0.2201', 'grad_norm': '1.38', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.1927', 'eval_runtime': '44.19', 'eval_samples_per_second': '98.87', 'eval_steps_per_second': '2.082', 'epoch': '11.59'}
+{'loss': '0.2118', 'grad_norm': '3.429', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.1908', 'eval_runtime': '45.32', 'eval_samples_per_second': '96.4', 'eval_steps_per_second': '2.03', 'epoch': '12.2'}
+{'loss': '0.203', 'grad_norm': '1.576', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.1853', 'eval_runtime': '43.82', 'eval_samples_per_second': '99.71', 'eval_steps_per_second': '2.1', 'epoch': '12.8'}
+{'loss': '0.1925', 'grad_norm': '1.497', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.1863', 'eval_runtime': '44.08', 'eval_samples_per_second': '99.12', 'eval_steps_per_second': '2.087', 'epoch': '13.41'}
+{'loss': '0.1897', 'grad_norm': '5.319', 'learning_rate': '0.0001065', 'epoch': '14.02'}
+{'eval_loss': '0.189', 'eval_runtime': '44.11', 'eval_samples_per_second': '99.06', 'eval_steps_per_second': '2.086', 'epoch': '14.02'}
+{'loss': '0.1796', 'grad_norm': '0.8649', 'learning_rate': '0.0001024', 'epoch': '14.63'}
+{'eval_loss': '0.1834', 'eval_runtime': '45.42', 'eval_samples_per_second': '96.2', 'eval_steps_per_second': '2.026', 'epoch': '14.63'}
+{'loss': '0.1754', 'grad_norm': '1.216', 'learning_rate': '9.838e-05', 'epoch': '15.24'}
+{'eval_loss': '0.1865', 'eval_runtime': '43.86', 'eval_samples_per_second': '99.61', 'eval_steps_per_second': '2.097', 'epoch': '15.24'}
+{'loss': '0.1714', 'grad_norm': '1.165', 'learning_rate': '9.432e-05', 'epoch': '15.85'}
+{'eval_loss': '0.1848', 'eval_runtime': '43.96', 'eval_samples_per_second': '99.39', 'eval_steps_per_second': '2.093', 'epoch': '15.85'}
+{'loss': '0.166', 'grad_norm': '1.681', 'learning_rate': '9.025e-05', 'epoch': '16.46'}
+{'eval_loss': '0.1877', 'eval_runtime': '45.28', 'eval_samples_per_second': '96.5', 'eval_steps_per_second': '2.032', 'epoch': '16.46'}
+{'train_runtime': '1.904e+04', 'train_samples_per_second': '61.95', 'train_steps_per_second': '1.292', 'train_loss': '0.9328', 'epoch': '16.46'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 1 Evaluation per token: 0.1834
+Fold 1 Entropy per sequence: 14.1656
+
+--- Starting Fold 2/10 ---
+Fold 2 sizes: Train=39313, Eval=4369
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 77.6670
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '8.96', 'grad_norm': '20.22', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '2.254', 'eval_runtime': '44.88', 'eval_samples_per_second': '97.36', 'eval_steps_per_second': '2.05', 'epoch': '0.6098'}
+{'loss': '2.208', 'grad_norm': '13.62', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.583', 'eval_runtime': '43.9', 'eval_samples_per_second': '99.53', 'eval_steps_per_second': '2.096', 'epoch': '1.22'}
+{'loss': '1.734', 'grad_norm': '33.13', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.464', 'eval_runtime': '44.11', 'eval_samples_per_second': '99.05', 'eval_steps_per_second': '2.086', 'epoch': '1.829'}
+{'loss': '1.562', 'grad_norm': '9.338', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.255', 'eval_runtime': '45.31', 'eval_samples_per_second': '96.42', 'eval_steps_per_second': '2.03', 'epoch': '2.439'}
+{'loss': '1.398', 'grad_norm': '2.568', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.167', 'eval_runtime': '43.9', 'eval_samples_per_second': '99.52', 'eval_steps_per_second': '2.096', 'epoch': '3.049'}
+{'loss': '1.288', 'grad_norm': '4.51', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.169', 'eval_runtime': '43.83', 'eval_samples_per_second': '99.68', 'eval_steps_per_second': '2.099', 'epoch': '3.659'}
+{'loss': '1.189', 'grad_norm': '5.507', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '0.9244', 'eval_runtime': '45.29', 'eval_samples_per_second': '96.47', 'eval_steps_per_second': '2.031', 'epoch': '4.268'}
+{'loss': '1.07', 'grad_norm': '14.83', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.8295', 'eval_runtime': '44.95', 'eval_samples_per_second': '97.19', 'eval_steps_per_second': '2.047', 'epoch': '4.878'}
+{'loss': '0.8933', 'grad_norm': '7.502', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.598', 'eval_runtime': '44.08', 'eval_samples_per_second': '99.12', 'eval_steps_per_second': '2.087', 'epoch': '5.488'}
+{'loss': '0.6732', 'grad_norm': '2.512', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.4178', 'eval_runtime': '43.86', 'eval_samples_per_second': '99.6', 'eval_steps_per_second': '2.097', 'epoch': '6.098'}
+{'loss': '0.4977', 'grad_norm': '5.373', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.3363', 'eval_runtime': '45.27', 'eval_samples_per_second': '96.5', 'eval_steps_per_second': '2.032', 'epoch': '6.707'}
+{'loss': '0.4023', 'grad_norm': '3.307', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.3003', 'eval_runtime': '44.25', 'eval_samples_per_second': '98.73', 'eval_steps_per_second': '2.079', 'epoch': '7.317'}
+{'loss': '0.3506', 'grad_norm': '0.9887', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.258', 'eval_runtime': '43.95', 'eval_samples_per_second': '99.41', 'eval_steps_per_second': '2.093', 'epoch': '7.927'}
+{'loss': '0.3129', 'grad_norm': '6.115', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.2783', 'eval_runtime': '45.14', 'eval_samples_per_second': '96.78', 'eval_steps_per_second': '2.038', 'epoch': '8.537'}
+{'loss': '0.2865', 'grad_norm': '5.634', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2406', 'eval_runtime': '44.22', 'eval_samples_per_second': '98.79', 'eval_steps_per_second': '2.08', 'epoch': '9.146'}
+{'loss': '0.2676', 'grad_norm': '1.464', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.2264', 'eval_runtime': '44.32', 'eval_samples_per_second': '98.59', 'eval_steps_per_second': '2.076', 'epoch': '9.756'}
+{'loss': '0.251', 'grad_norm': '2.86', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2072', 'eval_runtime': '45.21', 'eval_samples_per_second': '96.64', 'eval_steps_per_second': '2.035', 'epoch': '10.37'}
+{'loss': '0.2384', 'grad_norm': '1.324', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.2063', 'eval_runtime': '43.9', 'eval_samples_per_second': '99.53', 'eval_steps_per_second': '2.096', 'epoch': '10.98'}
+{'loss': '0.2245', 'grad_norm': '2.774', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.1994', 'eval_runtime': '44.14', 'eval_samples_per_second': '98.98', 'eval_steps_per_second': '2.084', 'epoch': '11.59'}
+{'loss': '0.2146', 'grad_norm': '1.873', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.1964', 'eval_runtime': '44.31', 'eval_samples_per_second': '98.59', 'eval_steps_per_second': '2.076', 'epoch': '12.2'}
+{'loss': '0.2104', 'grad_norm': '2.017', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.1893', 'eval_runtime': '45.4', 'eval_samples_per_second': '96.24', 'eval_steps_per_second': '2.027', 'epoch': '12.8'}
+{'loss': '0.2005', 'grad_norm': '2.91', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.1879', 'eval_runtime': '43.77', 'eval_samples_per_second': '99.81', 'eval_steps_per_second': '2.102', 'epoch': '13.41'}
+{'loss': '0.1928', 'grad_norm': '1.441', 'learning_rate': '0.0001065', 'epoch': '14.02'}
+{'eval_loss': '0.1925', 'eval_runtime': '43.96', 'eval_samples_per_second': '99.38', 'eval_steps_per_second': '2.093', 'epoch': '14.02'}
+{'loss': '0.1865', 'grad_norm': '2.262', 'learning_rate': '0.0001024', 'epoch': '14.63'}
+{'eval_loss': '0.1857', 'eval_runtime': '45.38', 'eval_samples_per_second': '96.28', 'eval_steps_per_second': '2.027', 'epoch': '14.63'}
+{'loss': '0.1789', 'grad_norm': '1.304', 'learning_rate': '9.838e-05', 'epoch': '15.24'}
+{'eval_loss': '0.1889', 'eval_runtime': '44.3', 'eval_samples_per_second': '98.62', 'eval_steps_per_second': '2.077', 'epoch': '15.24'}
+{'loss': '0.1758', 'grad_norm': '2.737', 'learning_rate': '9.432e-05', 'epoch': '15.85'}
+{'eval_loss': '0.1822', 'eval_runtime': '44.02', 'eval_samples_per_second': '99.24', 'eval_steps_per_second': '2.09', 'epoch': '15.85'}
+{'loss': '0.1697', 'grad_norm': '3.412', 'learning_rate': '9.025e-05', 'epoch': '16.46'}
+{'eval_loss': '0.1859', 'eval_runtime': '44.33', 'eval_samples_per_second': '98.55', 'eval_steps_per_second': '2.075', 'epoch': '16.46'}
+{'loss': '0.1667', 'grad_norm': '1.343', 'learning_rate': '8.619e-05', 'epoch': '17.07'}
+{'eval_loss': '0.1836', 'eval_runtime': '44.42', 'eval_samples_per_second': '98.35', 'eval_steps_per_second': '2.071', 'epoch': '17.07'}
+{'loss': '0.1607', 'grad_norm': '1.719', 'learning_rate': '8.212e-05', 'epoch': '17.68'}
+{'eval_loss': '0.1827', 'eval_runtime': '44.28', 'eval_samples_per_second': '98.66', 'eval_steps_per_second': '2.078', 'epoch': '17.68'}
+{'train_runtime': '2.09e+04', 'train_samples_per_second': '56.43', 'train_steps_per_second': '1.177', 'train_loss': '0.885', 'epoch': '17.68'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 2 Evaluation per token: 0.1822
+Fold 2 Entropy per sequence: 14.1546
+
+--- Starting Fold 3/10 ---
+Fold 3 sizes: Train=39314, Eval=4368
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 76.2324
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '8.931', 'grad_norm': '36.74', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '2.196', 'eval_runtime': '43.75', 'eval_samples_per_second': '99.84', 'eval_steps_per_second': '2.08', 'epoch': '0.6098'}
+{'loss': '2.272', 'grad_norm': '8.151', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.507', 'eval_runtime': '45.13', 'eval_samples_per_second': '96.79', 'eval_steps_per_second': '2.016', 'epoch': '1.22'}
+{'loss': '1.761', 'grad_norm': '6.12', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.394', 'eval_runtime': '44.13', 'eval_samples_per_second': '98.98', 'eval_steps_per_second': '2.062', 'epoch': '1.829'}
+{'loss': '1.544', 'grad_norm': '6.754', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.46', 'eval_runtime': '44.13', 'eval_samples_per_second': '98.97', 'eval_steps_per_second': '2.062', 'epoch': '2.439'}
+{'loss': '1.388', 'grad_norm': '7.859', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.167', 'eval_runtime': '43.39', 'eval_samples_per_second': '100.7', 'eval_steps_per_second': '2.097', 'epoch': '3.049'}
+{'loss': '1.263', 'grad_norm': '14.87', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.044', 'eval_runtime': '45.1', 'eval_samples_per_second': '96.85', 'eval_steps_per_second': '2.018', 'epoch': '3.659'}
+{'loss': '1.143', 'grad_norm': '9.502', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '0.8401', 'eval_runtime': '44.14', 'eval_samples_per_second': '98.97', 'eval_steps_per_second': '2.062', 'epoch': '4.268'}
+{'loss': '0.8682', 'grad_norm': '13.66', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.5248', 'eval_runtime': '44.26', 'eval_samples_per_second': '98.69', 'eval_steps_per_second': '2.056', 'epoch': '4.878'}
+{'loss': '0.587', 'grad_norm': '6.699', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.3939', 'eval_runtime': '45.21', 'eval_samples_per_second': '96.62', 'eval_steps_per_second': '2.013', 'epoch': '5.488'}
+{'loss': '0.4412', 'grad_norm': '1.504', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.3089', 'eval_runtime': '43.76', 'eval_samples_per_second': '99.81', 'eval_steps_per_second': '2.079', 'epoch': '6.098'}
+{'loss': '0.3796', 'grad_norm': '4.536', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.2938', 'eval_runtime': '44.04', 'eval_samples_per_second': '99.17', 'eval_steps_per_second': '2.066', 'epoch': '6.707'}
+{'loss': '0.3327', 'grad_norm': '1.227', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.2513', 'eval_runtime': '45.4', 'eval_samples_per_second': '96.21', 'eval_steps_per_second': '2.004', 'epoch': '7.317'}
+{'loss': '0.3076', 'grad_norm': '2.1', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.2505', 'eval_runtime': '37.22', 'eval_samples_per_second': '117.4', 'eval_steps_per_second': '2.445', 'epoch': '7.927'}
+{'loss': '0.2757', 'grad_norm': '1.656', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.2215', 'eval_runtime': '43.7', 'eval_samples_per_second': '99.94', 'eval_steps_per_second': '2.082', 'epoch': '8.537'}
+{'loss': '0.2573', 'grad_norm': '3.333', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2176', 'eval_runtime': '43.94', 'eval_samples_per_second': '99.41', 'eval_steps_per_second': '2.071', 'epoch': '9.146'}
+{'loss': '0.2446', 'grad_norm': '1.878', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.2087', 'eval_runtime': '45.3', 'eval_samples_per_second': '96.42', 'eval_steps_per_second': '2.009', 'epoch': '9.756'}
+{'loss': '0.2332', 'grad_norm': '0.9627', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2085', 'eval_runtime': '44.29', 'eval_samples_per_second': '98.63', 'eval_steps_per_second': '2.055', 'epoch': '10.37'}
+{'loss': '0.2222', 'grad_norm': '1.388', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.2031', 'eval_runtime': '43.96', 'eval_samples_per_second': '99.37', 'eval_steps_per_second': '2.07', 'epoch': '10.98'}
+{'loss': '0.2089', 'grad_norm': '4.307', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.2111', 'eval_runtime': '43.93', 'eval_samples_per_second': '99.44', 'eval_steps_per_second': '2.072', 'epoch': '11.59'}
+{'loss': '0.2003', 'grad_norm': '1.442', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.1931', 'eval_runtime': '45.23', 'eval_samples_per_second': '96.57', 'eval_steps_per_second': '2.012', 'epoch': '12.2'}
+{'loss': '0.1938', 'grad_norm': '0.7605', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.1912', 'eval_runtime': '44.11', 'eval_samples_per_second': '99.03', 'eval_steps_per_second': '2.063', 'epoch': '12.8'}
+{'loss': '0.1892', 'grad_norm': '4.137', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.1925', 'eval_runtime': '44.17', 'eval_samples_per_second': '98.89', 'eval_steps_per_second': '2.06', 'epoch': '13.41'}
+{'loss': '0.1793', 'grad_norm': '1.77', 'learning_rate': '0.0001065', 'epoch': '14.02'}
+{'eval_loss': '0.1915', 'eval_runtime': '45.03', 'eval_samples_per_second': '97', 'eval_steps_per_second': '2.021', 'epoch': '14.02'}
+{'loss': '0.1737', 'grad_norm': '4.035', 'learning_rate': '0.0001024', 'epoch': '14.63'}
+{'eval_loss': '0.1959', 'eval_runtime': '44.04', 'eval_samples_per_second': '99.19', 'eval_steps_per_second': '2.066', 'epoch': '14.63'}
+{'train_runtime': '1.728e+04', 'train_samples_per_second': '68.25', 'train_steps_per_second': '1.423', 'train_loss': '0.9832', 'epoch': '14.63'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 3 Evaluation per token: 0.1912
+Fold 3 Entropy per sequence: 14.5732
+
+--- Starting Fold 4/10 ---
+Fold 4 sizes: Train=39314, Eval=4368
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 77.7701
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '9.41', 'grad_norm': '30.3', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '2.004', 'eval_runtime': '43.8', 'eval_samples_per_second': '99.74', 'eval_steps_per_second': '2.078', 'epoch': '0.6098'}
+{'loss': '2.215', 'grad_norm': '44.06', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.633', 'eval_runtime': '43.87', 'eval_samples_per_second': '99.57', 'eval_steps_per_second': '2.074', 'epoch': '1.22'}
+{'loss': '1.719', 'grad_norm': '9.682', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.397', 'eval_runtime': '45.28', 'eval_samples_per_second': '96.46', 'eval_steps_per_second': '2.01', 'epoch': '1.829'}
+{'loss': '1.552', 'grad_norm': '6.84', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.235', 'eval_runtime': '44.17', 'eval_samples_per_second': '98.9', 'eval_steps_per_second': '2.06', 'epoch': '2.439'}
+{'loss': '1.368', 'grad_norm': '14.23', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.155', 'eval_runtime': '43.92', 'eval_samples_per_second': '99.45', 'eval_steps_per_second': '2.072', 'epoch': '3.049'}
+{'loss': '1.252', 'grad_norm': '6.218', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.013', 'eval_runtime': '45.1', 'eval_samples_per_second': '96.85', 'eval_steps_per_second': '2.018', 'epoch': '3.659'}
+{'loss': '1.114', 'grad_norm': '6.536', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '0.7647', 'eval_runtime': '44.04', 'eval_samples_per_second': '99.18', 'eval_steps_per_second': '2.066', 'epoch': '4.268'}
+{'loss': '0.8098', 'grad_norm': '5.292', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.4701', 'eval_runtime': '44.24', 'eval_samples_per_second': '98.75', 'eval_steps_per_second': '2.057', 'epoch': '4.878'}
+{'loss': '0.5489', 'grad_norm': '3.19', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.361', 'eval_runtime': '44.12', 'eval_samples_per_second': '99', 'eval_steps_per_second': '2.062', 'epoch': '5.488'}
+{'loss': '0.4368', 'grad_norm': '2.039', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.3207', 'eval_runtime': '45', 'eval_samples_per_second': '97.07', 'eval_steps_per_second': '2.022', 'epoch': '6.098'}
+{'loss': '0.3689', 'grad_norm': '3.903', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.2793', 'eval_runtime': '44.01', 'eval_samples_per_second': '99.26', 'eval_steps_per_second': '2.068', 'epoch': '6.707'}
+{'loss': '0.3297', 'grad_norm': '2.814', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.2577', 'eval_runtime': '44.2', 'eval_samples_per_second': '98.83', 'eval_steps_per_second': '2.059', 'epoch': '7.317'}
+{'loss': '0.3031', 'grad_norm': '5.256', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.2489', 'eval_runtime': '45.3', 'eval_samples_per_second': '96.42', 'eval_steps_per_second': '2.009', 'epoch': '7.927'}
+{'loss': '0.2727', 'grad_norm': '1.345', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.235', 'eval_runtime': '43.97', 'eval_samples_per_second': '99.34', 'eval_steps_per_second': '2.07', 'epoch': '8.537'}
+{'loss': '0.2594', 'grad_norm': '7.64', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2219', 'eval_runtime': '43.83', 'eval_samples_per_second': '99.67', 'eval_steps_per_second': '2.076', 'epoch': '9.146'}
+{'loss': '0.2428', 'grad_norm': '1.568', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.2134', 'eval_runtime': '45.21', 'eval_samples_per_second': '96.62', 'eval_steps_per_second': '2.013', 'epoch': '9.756'}
+{'loss': '0.2325', 'grad_norm': '2.434', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2133', 'eval_runtime': '44.12', 'eval_samples_per_second': '99', 'eval_steps_per_second': '2.062', 'epoch': '10.37'}
+{'loss': '0.2214', 'grad_norm': '1.987', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.218', 'eval_runtime': '44.28', 'eval_samples_per_second': '98.64', 'eval_steps_per_second': '2.055', 'epoch': '10.98'}
+{'loss': '0.2065', 'grad_norm': '2.52', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.2121', 'eval_runtime': '43.85', 'eval_samples_per_second': '99.6', 'eval_steps_per_second': '2.075', 'epoch': '11.59'}
+{'loss': '0.205', 'grad_norm': '2.097', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.2059', 'eval_runtime': '45.01', 'eval_samples_per_second': '97.04', 'eval_steps_per_second': '2.022', 'epoch': '12.2'}
+{'loss': '0.1915', 'grad_norm': '0.9155', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.1968', 'eval_runtime': '43.99', 'eval_samples_per_second': '99.29', 'eval_steps_per_second': '2.069', 'epoch': '12.8'}
+{'loss': '0.1894', 'grad_norm': '1.575', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.1954', 'eval_runtime': '44.33', 'eval_samples_per_second': '98.53', 'eval_steps_per_second': '2.053', 'epoch': '13.41'}
+{'loss': '0.1796', 'grad_norm': '2.528', 'learning_rate': '0.0001065', 'epoch': '14.02'}
+{'eval_loss': '0.1965', 'eval_runtime': '45.32', 'eval_samples_per_second': '96.39', 'eval_steps_per_second': '2.008', 'epoch': '14.02'}
+{'loss': '0.172', 'grad_norm': '1.753', 'learning_rate': '0.0001024', 'epoch': '14.63'}
+{'eval_loss': '0.1918', 'eval_runtime': '43.78', 'eval_samples_per_second': '99.76', 'eval_steps_per_second': '2.078', 'epoch': '14.63'}
+{'loss': '0.1699', 'grad_norm': '2.179', 'learning_rate': '9.838e-05', 'epoch': '15.24'}
+{'eval_loss': '0.1896', 'eval_runtime': '43.96', 'eval_samples_per_second': '99.37', 'eval_steps_per_second': '2.07', 'epoch': '15.24'}
+{'loss': '0.1646', 'grad_norm': '1.466', 'learning_rate': '9.432e-05', 'epoch': '15.85'}
+{'eval_loss': '0.1897', 'eval_runtime': '45.32', 'eval_samples_per_second': '96.39', 'eval_steps_per_second': '2.008', 'epoch': '15.85'}
+{'loss': '0.1617', 'grad_norm': '1.487', 'learning_rate': '9.025e-05', 'epoch': '16.46'}
+{'eval_loss': '0.193', 'eval_runtime': '44.25', 'eval_samples_per_second': '98.71', 'eval_steps_per_second': '2.057', 'epoch': '16.46'}
+{'loss': '0.1558', 'grad_norm': '1.134', 'learning_rate': '8.619e-05', 'epoch': '17.07'}
+{'eval_loss': '0.1962', 'eval_runtime': '43.89', 'eval_samples_per_second': '99.53', 'eval_steps_per_second': '2.073', 'epoch': '17.07'}
+{'train_runtime': '2.017e+04', 'train_samples_per_second': '58.46', 'train_steps_per_second': '1.219', 'train_loss': '0.8733', 'epoch': '17.07'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 4 Evaluation per token: 0.1896
+Fold 4 Entropy per sequence: 14.7465
+
+--- Starting Fold 5/10 ---
+Fold 5 sizes: Train=39314, Eval=4368
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 78.0577
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '9.016', 'grad_norm': '19.73', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '1.966', 'eval_runtime': '44.16', 'eval_samples_per_second': '98.9', 'eval_steps_per_second': '2.06', 'epoch': '0.6098'}
+{'loss': '2.191', 'grad_norm': '35.74', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.596', 'eval_runtime': '45.34', 'eval_samples_per_second': '96.33', 'eval_steps_per_second': '2.007', 'epoch': '1.22'}
+{'loss': '1.74', 'grad_norm': '14.26', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.355', 'eval_runtime': '44.15', 'eval_samples_per_second': '98.93', 'eval_steps_per_second': '2.061', 'epoch': '1.829'}
+{'loss': '1.574', 'grad_norm': '11.28', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.346', 'eval_runtime': '44.05', 'eval_samples_per_second': '99.16', 'eval_steps_per_second': '2.066', 'epoch': '2.439'}
+{'loss': '1.396', 'grad_norm': '7.797', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.16', 'eval_runtime': '44.25', 'eval_samples_per_second': '98.72', 'eval_steps_per_second': '2.057', 'epoch': '3.049'}
+{'loss': '1.278', 'grad_norm': '12.2', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.105', 'eval_runtime': '45', 'eval_samples_per_second': '97.06', 'eval_steps_per_second': '2.022', 'epoch': '3.659'}
+{'loss': '1.169', 'grad_norm': '13', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '0.8931', 'eval_runtime': '43.83', 'eval_samples_per_second': '99.66', 'eval_steps_per_second': '2.076', 'epoch': '4.268'}
+{'loss': '0.9087', 'grad_norm': '3.494', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.5366', 'eval_runtime': '44.36', 'eval_samples_per_second': '98.47', 'eval_steps_per_second': '2.051', 'epoch': '4.878'}
+{'loss': '0.6256', 'grad_norm': '4.832', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.4221', 'eval_runtime': '46.06', 'eval_samples_per_second': '94.82', 'eval_steps_per_second': '1.975', 'epoch': '5.488'}
+{'loss': '0.4863', 'grad_norm': '1.095', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.338', 'eval_runtime': '44.18', 'eval_samples_per_second': '98.88', 'eval_steps_per_second': '2.06', 'epoch': '6.098'}
+{'loss': '0.3987', 'grad_norm': '6.161', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.2945', 'eval_runtime': '43.82', 'eval_samples_per_second': '99.69', 'eval_steps_per_second': '2.077', 'epoch': '6.707'}
+{'loss': '0.3454', 'grad_norm': '0.7938', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.2584', 'eval_runtime': '45.18', 'eval_samples_per_second': '96.68', 'eval_steps_per_second': '2.014', 'epoch': '7.317'}
+{'loss': '0.3149', 'grad_norm': '5.813', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.2463', 'eval_runtime': '44.13', 'eval_samples_per_second': '98.98', 'eval_steps_per_second': '2.062', 'epoch': '7.927'}
+{'loss': '0.2828', 'grad_norm': '5.09', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.2289', 'eval_runtime': '44.22', 'eval_samples_per_second': '98.77', 'eval_steps_per_second': '2.058', 'epoch': '8.537'}
+{'loss': '0.2611', 'grad_norm': '3.974', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2402', 'eval_runtime': '43.88', 'eval_samples_per_second': '99.54', 'eval_steps_per_second': '2.074', 'epoch': '9.146'}
+{'loss': '0.2484', 'grad_norm': '0.9108', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.2164', 'eval_runtime': '44.99', 'eval_samples_per_second': '97.09', 'eval_steps_per_second': '2.023', 'epoch': '9.756'}
+{'loss': '0.2413', 'grad_norm': '1.338', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2079', 'eval_runtime': '43.97', 'eval_samples_per_second': '99.35', 'eval_steps_per_second': '2.07', 'epoch': '10.37'}
+{'loss': '0.2238', 'grad_norm': '3.638', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.207', 'eval_runtime': '44.21', 'eval_samples_per_second': '98.81', 'eval_steps_per_second': '2.058', 'epoch': '10.98'}
+{'loss': '0.2127', 'grad_norm': '1.671', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.2017', 'eval_runtime': '45.39', 'eval_samples_per_second': '96.24', 'eval_steps_per_second': '2.005', 'epoch': '11.59'}
+{'loss': '0.2042', 'grad_norm': '1.209', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.1915', 'eval_runtime': '43.8', 'eval_samples_per_second': '99.72', 'eval_steps_per_second': '2.077', 'epoch': '12.2'}
+{'loss': '0.197', 'grad_norm': '4.359', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.2015', 'eval_runtime': '43.87', 'eval_samples_per_second': '99.57', 'eval_steps_per_second': '2.074', 'epoch': '12.8'}
+{'loss': '0.1926', 'grad_norm': '1.701', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.1944', 'eval_runtime': '45.34', 'eval_samples_per_second': '96.34', 'eval_steps_per_second': '2.007', 'epoch': '13.41'}
+{'loss': '0.1845', 'grad_norm': '1.282', 'learning_rate': '0.0001065', 'epoch': '14.02'}
+{'eval_loss': '0.1984', 'eval_runtime': '44.28', 'eval_samples_per_second': '98.64', 'eval_steps_per_second': '2.055', 'epoch': '14.02'}
+{'train_runtime': '1.658e+04', 'train_samples_per_second': '71.13', 'train_steps_per_second': '1.484', 'train_loss': '1.03', 'epoch': '14.02'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 5 Evaluation per token: 0.1915
+Fold 5 Entropy per sequence: 14.9471
+
+--- Starting Fold 6/10 ---
+Fold 6 sizes: Train=39314, Eval=4368
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 77.8539
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '9.088', 'grad_norm': '11.21', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '2.119', 'eval_runtime': '43.89', 'eval_samples_per_second': '99.52', 'eval_steps_per_second': '2.073', 'epoch': '0.6098'}
+{'loss': '2.308', 'grad_norm': '16.44', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.645', 'eval_runtime': '44.11', 'eval_samples_per_second': '99.02', 'eval_steps_per_second': '2.063', 'epoch': '1.22'}
+{'loss': '1.745', 'grad_norm': '21.81', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.401', 'eval_runtime': '45.39', 'eval_samples_per_second': '96.23', 'eval_steps_per_second': '2.005', 'epoch': '1.829'}
+{'loss': '1.545', 'grad_norm': '7.295', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.299', 'eval_runtime': '43.92', 'eval_samples_per_second': '99.46', 'eval_steps_per_second': '2.072', 'epoch': '2.439'}
+{'loss': '1.406', 'grad_norm': '23.95', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.198', 'eval_runtime': '43.76', 'eval_samples_per_second': '99.82', 'eval_steps_per_second': '2.08', 'epoch': '3.049'}
+{'loss': '1.307', 'grad_norm': '2.761', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.067', 'eval_runtime': '45.06', 'eval_samples_per_second': '96.94', 'eval_steps_per_second': '2.019', 'epoch': '3.659'}
+{'loss': '1.192', 'grad_norm': '2.837', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '0.8968', 'eval_runtime': '44.08', 'eval_samples_per_second': '99.1', 'eval_steps_per_second': '2.065', 'epoch': '4.268'}
+{'loss': '0.921', 'grad_norm': '4.799', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.5492', 'eval_runtime': '44.14', 'eval_samples_per_second': '98.96', 'eval_steps_per_second': '2.062', 'epoch': '4.878'}
+{'loss': '0.6356', 'grad_norm': '4.105', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.4175', 'eval_runtime': '44.19', 'eval_samples_per_second': '98.84', 'eval_steps_per_second': '2.059', 'epoch': '5.488'}
+{'loss': '0.4801', 'grad_norm': '2.652', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.3483', 'eval_runtime': '45.44', 'eval_samples_per_second': '96.12', 'eval_steps_per_second': '2.002', 'epoch': '6.098'}
+{'loss': '0.397', 'grad_norm': '6.17', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.2994', 'eval_runtime': '44.2', 'eval_samples_per_second': '98.81', 'eval_steps_per_second': '2.059', 'epoch': '6.707'}
+{'loss': '0.3442', 'grad_norm': '5.643', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.2695', 'eval_runtime': '44', 'eval_samples_per_second': '99.28', 'eval_steps_per_second': '2.068', 'epoch': '7.317'}
+{'loss': '0.3155', 'grad_norm': '1.551', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.2517', 'eval_runtime': '44.97', 'eval_samples_per_second': '97.13', 'eval_steps_per_second': '2.024', 'epoch': '7.927'}
+{'loss': '0.2844', 'grad_norm': '1.932', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.2442', 'eval_runtime': '43.89', 'eval_samples_per_second': '99.53', 'eval_steps_per_second': '2.073', 'epoch': '8.537'}
+{'loss': '0.2645', 'grad_norm': '2.67', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2346', 'eval_runtime': '43.98', 'eval_samples_per_second': '99.33', 'eval_steps_per_second': '2.069', 'epoch': '9.146'}
+{'loss': '0.2489', 'grad_norm': '4.877', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.2178', 'eval_runtime': '44.14', 'eval_samples_per_second': '98.96', 'eval_steps_per_second': '2.062', 'epoch': '9.756'}
+{'loss': '0.2387', 'grad_norm': '2.78', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2235', 'eval_runtime': '45.05', 'eval_samples_per_second': '96.97', 'eval_steps_per_second': '2.02', 'epoch': '10.37'}
+{'loss': '0.2247', 'grad_norm': '1.554', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.2131', 'eval_runtime': '44.27', 'eval_samples_per_second': '98.67', 'eval_steps_per_second': '2.056', 'epoch': '10.98'}
+{'loss': '0.2105', 'grad_norm': '1.417', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.2079', 'eval_runtime': '44.24', 'eval_samples_per_second': '98.73', 'eval_steps_per_second': '2.057', 'epoch': '11.59'}
+{'loss': '0.2064', 'grad_norm': '1.162', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.2035', 'eval_runtime': '45.22', 'eval_samples_per_second': '96.59', 'eval_steps_per_second': '2.012', 'epoch': '12.2'}
+{'loss': '0.1952', 'grad_norm': '2.007', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.1969', 'eval_runtime': '45.24', 'eval_samples_per_second': '96.56', 'eval_steps_per_second': '2.012', 'epoch': '12.8'}
+{'loss': '0.1891', 'grad_norm': '5.084', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.2071', 'eval_runtime': '43.77', 'eval_samples_per_second': '99.8', 'eval_steps_per_second': '2.079', 'epoch': '13.41'}
+{'loss': '0.1836', 'grad_norm': '2.02', 'learning_rate': '0.0001065', 'epoch': '14.02'}
+{'eval_loss': '0.2111', 'eval_runtime': '44.08', 'eval_samples_per_second': '99.09', 'eval_steps_per_second': '2.064', 'epoch': '14.02'}
+{'loss': '0.1736', 'grad_norm': '2.62', 'learning_rate': '0.0001024', 'epoch': '14.63'}
+{'eval_loss': '0.1987', 'eval_runtime': '45.33', 'eval_samples_per_second': '96.35', 'eval_steps_per_second': '2.007', 'epoch': '14.63'}
+{'train_runtime': '1.728e+04', 'train_samples_per_second': '68.24', 'train_steps_per_second': '1.423', 'train_loss': '1.004', 'epoch': '14.63'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 6 Evaluation per token: 0.1969
+Fold 6 Entropy per sequence: 15.3288
+
+--- Starting Fold 7/10 ---
+Fold 7 sizes: Train=39314, Eval=4368
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 77.5465
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '8.924', 'grad_norm': '23.23', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '1.992', 'eval_runtime': '43.79', 'eval_samples_per_second': '99.75', 'eval_steps_per_second': '2.078', 'epoch': '0.6098'}
+{'loss': '2.151', 'grad_norm': '41.74', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.63', 'eval_runtime': '44.81', 'eval_samples_per_second': '97.49', 'eval_steps_per_second': '2.031', 'epoch': '1.22'}
+{'loss': '1.73', 'grad_norm': '13.91', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.355', 'eval_runtime': '43.98', 'eval_samples_per_second': '99.32', 'eval_steps_per_second': '2.069', 'epoch': '1.829'}
+{'loss': '1.536', 'grad_norm': '26.44', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.351', 'eval_runtime': '45.37', 'eval_samples_per_second': '96.28', 'eval_steps_per_second': '2.006', 'epoch': '2.439'}
+{'loss': '1.388', 'grad_norm': '31.75', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.249', 'eval_runtime': '43.81', 'eval_samples_per_second': '99.7', 'eval_steps_per_second': '2.077', 'epoch': '3.049'}
+{'loss': '1.288', 'grad_norm': '9.88', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.078', 'eval_runtime': '43.82', 'eval_samples_per_second': '99.68', 'eval_steps_per_second': '2.077', 'epoch': '3.659'}
+{'loss': '1.146', 'grad_norm': '4.625', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '0.8284', 'eval_runtime': '45.26', 'eval_samples_per_second': '96.51', 'eval_steps_per_second': '2.011', 'epoch': '4.268'}
+{'loss': '0.874', 'grad_norm': '10.77', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.5088', 'eval_runtime': '44.24', 'eval_samples_per_second': '98.73', 'eval_steps_per_second': '2.057', 'epoch': '4.878'}
+{'loss': '0.5912', 'grad_norm': '4.145', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.4082', 'eval_runtime': '43.93', 'eval_samples_per_second': '99.42', 'eval_steps_per_second': '2.071', 'epoch': '5.488'}
+{'loss': '0.4546', 'grad_norm': '4.497', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.3346', 'eval_runtime': '44.66', 'eval_samples_per_second': '97.8', 'eval_steps_per_second': '2.038', 'epoch': '6.098'}
+{'loss': '0.3802', 'grad_norm': '1.587', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.2824', 'eval_runtime': '44.35', 'eval_samples_per_second': '98.48', 'eval_steps_per_second': '2.052', 'epoch': '6.707'}
+{'loss': '0.3386', 'grad_norm': '1.141', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.2656', 'eval_runtime': '44.23', 'eval_samples_per_second': '98.75', 'eval_steps_per_second': '2.057', 'epoch': '7.317'}
+{'loss': '0.3051', 'grad_norm': '2.355', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.2405', 'eval_runtime': '43.88', 'eval_samples_per_second': '99.55', 'eval_steps_per_second': '2.074', 'epoch': '7.927'}
+{'loss': '0.2787', 'grad_norm': '1.428', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.2406', 'eval_runtime': '45.12', 'eval_samples_per_second': '96.8', 'eval_steps_per_second': '2.017', 'epoch': '8.537'}
+{'loss': '0.2637', 'grad_norm': '3.431', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2296', 'eval_runtime': '44.17', 'eval_samples_per_second': '98.88', 'eval_steps_per_second': '2.06', 'epoch': '9.146'}
+{'loss': '0.2447', 'grad_norm': '2.116', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.22', 'eval_runtime': '44.14', 'eval_samples_per_second': '98.95', 'eval_steps_per_second': '2.062', 'epoch': '9.756'}
+{'loss': '0.2347', 'grad_norm': '1.213', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2139', 'eval_runtime': '45.14', 'eval_samples_per_second': '96.77', 'eval_steps_per_second': '2.016', 'epoch': '10.37'}
+{'loss': '0.221', 'grad_norm': '5.044', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.203', 'eval_runtime': '43.93', 'eval_samples_per_second': '99.43', 'eval_steps_per_second': '2.071', 'epoch': '10.98'}
+{'loss': '0.2089', 'grad_norm': '1.02', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.1993', 'eval_runtime': '44.19', 'eval_samples_per_second': '98.84', 'eval_steps_per_second': '2.059', 'epoch': '11.59'}
+{'loss': '0.203', 'grad_norm': '1.273', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.2083', 'eval_runtime': '44.12', 'eval_samples_per_second': '98.99', 'eval_steps_per_second': '2.062', 'epoch': '12.2'}
+{'loss': '0.1929', 'grad_norm': '2.225', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.1994', 'eval_runtime': '45.1', 'eval_samples_per_second': '96.84', 'eval_steps_per_second': '2.018', 'epoch': '12.8'}
+{'loss': '0.1871', 'grad_norm': '2.118', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.2085', 'eval_runtime': '43.81', 'eval_samples_per_second': '99.71', 'eval_steps_per_second': '2.077', 'epoch': '13.41'}
+{'train_runtime': '1.585e+04', 'train_samples_per_second': '74.4', 'train_steps_per_second': '1.552', 'train_loss': '1.052', 'epoch': '13.41'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 7 Evaluation per token: 0.1993
+Fold 7 Entropy per sequence: 15.4560
+
+--- Starting Fold 8/10 ---
+Fold 8 sizes: Train=39314, Eval=4368
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 76.2992
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '9.209', 'grad_norm': '24.83', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '2.039', 'eval_runtime': '44.3', 'eval_samples_per_second': '98.6', 'eval_steps_per_second': '2.054', 'epoch': '0.6098'}
+{'loss': '2.18', 'grad_norm': '33.1', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.681', 'eval_runtime': '45.05', 'eval_samples_per_second': '96.96', 'eval_steps_per_second': '2.02', 'epoch': '1.22'}
+{'loss': '1.766', 'grad_norm': '7.483', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.397', 'eval_runtime': '43.91', 'eval_samples_per_second': '99.47', 'eval_steps_per_second': '2.072', 'epoch': '1.829'}
+{'loss': '1.549', 'grad_norm': '15.77', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.276', 'eval_runtime': '44.05', 'eval_samples_per_second': '99.16', 'eval_steps_per_second': '2.066', 'epoch': '2.439'}
+{'loss': '1.378', 'grad_norm': '6.534', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.149', 'eval_runtime': '44.17', 'eval_samples_per_second': '98.88', 'eval_steps_per_second': '2.06', 'epoch': '3.049'}
+{'loss': '1.277', 'grad_norm': '25.48', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.067', 'eval_runtime': '45.16', 'eval_samples_per_second': '96.72', 'eval_steps_per_second': '2.015', 'epoch': '3.659'}
+{'loss': '1.11', 'grad_norm': '9.649', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '0.8275', 'eval_runtime': '43.89', 'eval_samples_per_second': '99.52', 'eval_steps_per_second': '2.073', 'epoch': '4.268'}
+{'loss': '0.7751', 'grad_norm': '6.533', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.4482', 'eval_runtime': '44.15', 'eval_samples_per_second': '98.93', 'eval_steps_per_second': '2.061', 'epoch': '4.878'}
+{'loss': '0.5338', 'grad_norm': '5.084', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.3535', 'eval_runtime': '45.44', 'eval_samples_per_second': '96.12', 'eval_steps_per_second': '2.003', 'epoch': '5.488'}
+{'loss': '0.432', 'grad_norm': '1.808', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.3148', 'eval_runtime': '44.2', 'eval_samples_per_second': '98.83', 'eval_steps_per_second': '2.059', 'epoch': '6.098'}
+{'loss': '0.366', 'grad_norm': '1.407', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.2758', 'eval_runtime': '43.8', 'eval_samples_per_second': '99.73', 'eval_steps_per_second': '2.078', 'epoch': '6.707'}
+{'loss': '0.3317', 'grad_norm': '3.442', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.256', 'eval_runtime': '45.12', 'eval_samples_per_second': '96.82', 'eval_steps_per_second': '2.017', 'epoch': '7.317'}
+{'loss': '0.2977', 'grad_norm': '0.9649', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.2434', 'eval_runtime': '44.22', 'eval_samples_per_second': '98.79', 'eval_steps_per_second': '2.058', 'epoch': '7.927'}
+{'loss': '0.274', 'grad_norm': '2.112', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.2405', 'eval_runtime': '45.07', 'eval_samples_per_second': '96.92', 'eval_steps_per_second': '2.019', 'epoch': '8.537'}
+{'loss': '0.2562', 'grad_norm': '0.9709', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2239', 'eval_runtime': '44.07', 'eval_samples_per_second': '99.12', 'eval_steps_per_second': '2.065', 'epoch': '9.146'}
+{'loss': '0.2439', 'grad_norm': '1.612', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.2136', 'eval_runtime': '45.07', 'eval_samples_per_second': '96.92', 'eval_steps_per_second': '2.019', 'epoch': '9.756'}
+{'loss': '0.2334', 'grad_norm': '1.334', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2125', 'eval_runtime': '44.05', 'eval_samples_per_second': '99.17', 'eval_steps_per_second': '2.066', 'epoch': '10.37'}
+{'loss': '0.2192', 'grad_norm': '3.148', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.207', 'eval_runtime': '44.31', 'eval_samples_per_second': '98.58', 'eval_steps_per_second': '2.054', 'epoch': '10.98'}
+{'loss': '0.2094', 'grad_norm': '1.855', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.2048', 'eval_runtime': '45.46', 'eval_samples_per_second': '96.09', 'eval_steps_per_second': '2.002', 'epoch': '11.59'}
+{'loss': '0.201', 'grad_norm': '0.6913', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.1994', 'eval_runtime': '43.98', 'eval_samples_per_second': '99.32', 'eval_steps_per_second': '2.069', 'epoch': '12.2'}
+{'loss': '0.1917', 'grad_norm': '1.523', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.1972', 'eval_runtime': '43.87', 'eval_samples_per_second': '99.58', 'eval_steps_per_second': '2.075', 'epoch': '12.8'}
+{'loss': '0.1864', 'grad_norm': '1.851', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.1963', 'eval_runtime': '43.92', 'eval_samples_per_second': '99.46', 'eval_steps_per_second': '2.072', 'epoch': '13.41'}
+{'loss': '0.1812', 'grad_norm': '0.774', 'learning_rate': '0.0001065', 'epoch': '14.02'}
+{'eval_loss': '0.2002', 'eval_runtime': '45.35', 'eval_samples_per_second': '96.31', 'eval_steps_per_second': '2.007', 'epoch': '14.02'}
+{'loss': '0.1733', 'grad_norm': '2.964', 'learning_rate': '0.0001024', 'epoch': '14.63'}
+{'eval_loss': '0.1897', 'eval_runtime': '44.34', 'eval_samples_per_second': '98.5', 'eval_steps_per_second': '2.052', 'epoch': '14.63'}
+{'loss': '0.1673', 'grad_norm': '1.767', 'learning_rate': '9.838e-05', 'epoch': '15.24'}
+{'eval_loss': '0.1925', 'eval_runtime': '45.19', 'eval_samples_per_second': '96.66', 'eval_steps_per_second': '2.014', 'epoch': '15.24'}
+{'loss': '0.166', 'grad_norm': '0.9926', 'learning_rate': '9.432e-05', 'epoch': '15.85'}
+{'eval_loss': '0.1966', 'eval_runtime': '44.07', 'eval_samples_per_second': '99.11', 'eval_steps_per_second': '2.065', 'epoch': '15.85'}
+{'loss': '0.1597', 'grad_norm': '1.056', 'learning_rate': '9.025e-05', 'epoch': '16.46'}
+{'eval_loss': '0.1946', 'eval_runtime': '44.93', 'eval_samples_per_second': '97.22', 'eval_steps_per_second': '2.026', 'epoch': '16.46'}
+{'train_runtime': '1.946e+04', 'train_samples_per_second': '60.6', 'train_steps_per_second': '1.264', 'train_loss': '0.8914', 'epoch': '16.46'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 8 Evaluation per token: 0.1897
+Fold 8 Entropy per sequence: 14.4710
+
+--- Starting Fold 9/10 ---
+Fold 9 sizes: Train=39314, Eval=4368
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 77.5105
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '8.887', 'grad_norm': '48.32', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '2.244', 'eval_runtime': '44.13', 'eval_samples_per_second': '98.98', 'eval_steps_per_second': '2.062', 'epoch': '0.6098'}
+{'loss': '2.26', 'grad_norm': '25.06', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.685', 'eval_runtime': '44.15', 'eval_samples_per_second': '98.94', 'eval_steps_per_second': '2.061', 'epoch': '1.22'}
+{'loss': '1.772', 'grad_norm': '6.162', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.38', 'eval_runtime': '45.57', 'eval_samples_per_second': '95.85', 'eval_steps_per_second': '1.997', 'epoch': '1.829'}
+{'loss': '1.562', 'grad_norm': '5.348', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.297', 'eval_runtime': '43.91', 'eval_samples_per_second': '99.47', 'eval_steps_per_second': '2.072', 'epoch': '2.439'}
+{'loss': '1.414', 'grad_norm': '7.825', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.177', 'eval_runtime': '43.99', 'eval_samples_per_second': '99.29', 'eval_steps_per_second': '2.069', 'epoch': '3.049'}
+{'loss': '1.279', 'grad_norm': '9.006', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.089', 'eval_runtime': '44.09', 'eval_samples_per_second': '99.06', 'eval_steps_per_second': '2.064', 'epoch': '3.659'}
+{'loss': '1.134', 'grad_norm': '9.656', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '0.8376', 'eval_runtime': '45.47', 'eval_samples_per_second': '96.07', 'eval_steps_per_second': '2.001', 'epoch': '4.268'}
+{'loss': '0.8079', 'grad_norm': '3.222', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.4624', 'eval_runtime': '44.38', 'eval_samples_per_second': '98.43', 'eval_steps_per_second': '2.051', 'epoch': '4.878'}
+{'loss': '0.5385', 'grad_norm': '2.725', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.3607', 'eval_runtime': '44.22', 'eval_samples_per_second': '98.78', 'eval_steps_per_second': '2.058', 'epoch': '5.488'}
+{'loss': '0.4369', 'grad_norm': '3.565', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.311', 'eval_runtime': '45.42', 'eval_samples_per_second': '96.17', 'eval_steps_per_second': '2.003', 'epoch': '6.098'}
+{'loss': '0.3696', 'grad_norm': '2.972', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.2787', 'eval_runtime': '44.16', 'eval_samples_per_second': '98.91', 'eval_steps_per_second': '2.061', 'epoch': '6.707'}
+{'loss': '0.3288', 'grad_norm': '2.939', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.2602', 'eval_runtime': '44.03', 'eval_samples_per_second': '99.2', 'eval_steps_per_second': '2.067', 'epoch': '7.317'}
+{'loss': '0.2962', 'grad_norm': '1.656', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.2395', 'eval_runtime': '44.43', 'eval_samples_per_second': '98.32', 'eval_steps_per_second': '2.048', 'epoch': '7.927'}
+{'loss': '0.2734', 'grad_norm': '2.748', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.2327', 'eval_runtime': '44.8', 'eval_samples_per_second': '97.49', 'eval_steps_per_second': '2.031', 'epoch': '8.537'}
+{'loss': '0.256', 'grad_norm': '5.1', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2267', 'eval_runtime': '37.38', 'eval_samples_per_second': '116.8', 'eval_steps_per_second': '2.434', 'epoch': '9.146'}
+{'loss': '0.2391', 'grad_norm': '0.9465', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.2181', 'eval_runtime': '44.06', 'eval_samples_per_second': '99.13', 'eval_steps_per_second': '2.065', 'epoch': '9.756'}
+{'loss': '0.2253', 'grad_norm': '0.902', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2102', 'eval_runtime': '45.79', 'eval_samples_per_second': '95.39', 'eval_steps_per_second': '1.987', 'epoch': '10.37'}
+{'loss': '0.2177', 'grad_norm': '1.252', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.203', 'eval_runtime': '43.91', 'eval_samples_per_second': '99.48', 'eval_steps_per_second': '2.072', 'epoch': '10.98'}
+{'loss': '0.2061', 'grad_norm': '2.333', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.2062', 'eval_runtime': '43.71', 'eval_samples_per_second': '99.92', 'eval_steps_per_second': '2.082', 'epoch': '11.59'}
+{'loss': '0.1959', 'grad_norm': '6.194', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.1954', 'eval_runtime': '45.24', 'eval_samples_per_second': '96.54', 'eval_steps_per_second': '2.011', 'epoch': '12.2'}
+{'loss': '0.1907', 'grad_norm': '1.937', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.195', 'eval_runtime': '44.19', 'eval_samples_per_second': '98.84', 'eval_steps_per_second': '2.059', 'epoch': '12.8'}
+{'loss': '0.1831', 'grad_norm': '2.69', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.194', 'eval_runtime': '45.39', 'eval_samples_per_second': '96.23', 'eval_steps_per_second': '2.005', 'epoch': '13.41'}
+{'loss': '0.1781', 'grad_norm': '0.8422', 'learning_rate': '0.0001065', 'epoch': '14.02'}
+{'eval_loss': '0.1989', 'eval_runtime': '43.91', 'eval_samples_per_second': '99.47', 'eval_steps_per_second': '2.072', 'epoch': '14.02'}
+{'loss': '0.1693', 'grad_norm': '1.716', 'learning_rate': '0.0001024', 'epoch': '14.63'}
+{'eval_loss': '0.1884', 'eval_runtime': '45.13', 'eval_samples_per_second': '96.78', 'eval_steps_per_second': '2.016', 'epoch': '14.63'}
+{'loss': '0.1643', 'grad_norm': '0.9952', 'learning_rate': '9.838e-05', 'epoch': '15.24'}
+{'eval_loss': '0.1873', 'eval_runtime': '44.16', 'eval_samples_per_second': '98.92', 'eval_steps_per_second': '2.061', 'epoch': '15.24'}
+{'loss': '0.1645', 'grad_norm': '1.591', 'learning_rate': '9.432e-05', 'epoch': '15.85'}
+{'eval_loss': '0.1893', 'eval_runtime': '46.05', 'eval_samples_per_second': '94.86', 'eval_steps_per_second': '1.976', 'epoch': '15.85'}
+{'loss': '0.153', 'grad_norm': '0.8615', 'learning_rate': '9.025e-05', 'epoch': '16.46'}
+{'eval_loss': '0.1864', 'eval_runtime': '44.1', 'eval_samples_per_second': '99.06', 'eval_steps_per_second': '2.064', 'epoch': '16.46'}
+{'loss': '0.1532', 'grad_norm': '5.1', 'learning_rate': '8.619e-05', 'epoch': '17.07'}
+{'eval_loss': '0.1957', 'eval_runtime': '45.05', 'eval_samples_per_second': '96.97', 'eval_steps_per_second': '2.02', 'epoch': '17.07'}
+{'loss': '0.1472', 'grad_norm': '0.8216', 'learning_rate': '8.212e-05', 'epoch': '17.68'}
+{'eval_loss': '0.1895', 'eval_runtime': '44', 'eval_samples_per_second': '99.28', 'eval_steps_per_second': '2.068', 'epoch': '17.68'}
+{'loss': '0.1453', 'grad_norm': '3.827', 'learning_rate': '7.806e-05', 'epoch': '18.29'}
+{'eval_loss': '0.1904', 'eval_runtime': '44.79', 'eval_samples_per_second': '97.52', 'eval_steps_per_second': '2.032', 'epoch': '18.29'}
+{'train_runtime': '2.166e+04', 'train_samples_per_second': '54.45', 'train_steps_per_second': '1.136', 'train_loss': '0.8116', 'epoch': '18.29'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 9 Evaluation per token: 0.1864
+Fold 9 Entropy per sequence: 14.4508
+
+--- Starting Fold 10/10 ---
+Fold 10 sizes: Train=39314, Eval=4368
+Loading tokenizer...
+Found 36 POS tags: ['CC', 'CD', 'DT', 'EX', 'FW', 'IN', 'JJ', 'JJR', 'JJS', 'LS', 'MD', 'NN', 'NNP', 'NNPS', 'NNS', 'PDT', 'POS', 'PRP', 'PRP$', 'RB', 'RBR', 'RBS', 'RP', 'SYM', 'TO', 'UH', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'WDT', 'WP', 'WP$', 'WRB']
+Found 32 phrase labels: ['-LRB-', '-RRB-', 'ADD', 'ADJP', 'ADVP', 'AFX', 'CONJP', 'FRAG', 'HYPH', 'INTJ', 'LST', 'NFP', 'NML', 'NP', 'PP', 'PRN', 'PRT', 'QP', 'ROOT', 'RRC', 'S', 'SBAR', 'SBARQ', 'SINV', 'SQ', 'UCP', 'VP', 'WHADJP', 'WHADVP', 'WHNP', 'WHPP', 'X']
+Adding manual additions: ( ) # $ . , ''
+Preprocessing...
+Token length per parse sequence: 77.4544
+Initializing DualEncoder model...
+Loading  weights...
+Missing keys: ['prosody_encoder.pos_table', 'prosody_encoder.mag_table', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.0.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.0.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.0.linear1.weight', 'prosody_encoder.transformer.layers.0.linear1.bias', 'prosody_encoder.transformer.layers.0.linear2.weight', 'prosody_encoder.transformer.layers.0.linear2.bias', 'prosody_encoder.transformer.layers.0.norm1.weight', 'prosody_encoder.transformer.layers.0.norm1.bias', 'prosody_encoder.transformer.layers.0.norm2.weight', 'prosody_encoder.transformer.layers.0.norm2.bias', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_weight', 'prosody_encoder.transformer.layers.1.self_attn.in_proj_bias', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.weight', 'prosody_encoder.transformer.layers.1.self_attn.out_proj.bias', 'prosody_encoder.transformer.layers.1.linear1.weight', 'prosody_encoder.transformer.layers.1.linear1.bias', 'prosody_encoder.transformer.layers.1.linear2.weight', 'prosody_encoder.transformer.layers.1.linear2.bias', 'prosody_encoder.transformer.layers.1.norm1.weight', 'prosody_encoder.transformer.layers.1.norm1.bias', 'prosody_encoder.transformer.layers.1.norm2.weight', 'prosody_encoder.transformer.layers.1.norm2.bias', 'prosody_encoder.up_proj.weight', 'prosody_encoder.up_proj.bias', 'prosody_up.weight', 'prosody_up.bias', 'cross_attn.in_proj_weight', 'cross_attn.in_proj_bias', 'cross_attn.out_proj.weight', 'cross_attn.out_proj.bias', 'fusion_layer_norm.weight', 'fusion_layer_norm.bias']
+Unexpected keys: []
+Re-initializing decoder layer, to be trained from scratch
+Training...
+{'loss': '9.378', 'grad_norm': '15.61', 'learning_rate': '0.0001959', 'epoch': '0.6098'}
+{'eval_loss': '2.246', 'eval_runtime': '45.1', 'eval_samples_per_second': '96.84', 'eval_steps_per_second': '2.018', 'epoch': '0.6098'}
+{'loss': '2.245', 'grad_norm': '17.83', 'learning_rate': '0.0001919', 'epoch': '1.22'}
+{'eval_loss': '1.931', 'eval_runtime': '43.94', 'eval_samples_per_second': '99.4', 'eval_steps_per_second': '2.071', 'epoch': '1.22'}
+{'loss': '1.781', 'grad_norm': '6.373', 'learning_rate': '0.0001878', 'epoch': '1.829'}
+{'eval_loss': '1.41', 'eval_runtime': '45.63', 'eval_samples_per_second': '95.72', 'eval_steps_per_second': '1.994', 'epoch': '1.829'}
+{'loss': '1.537', 'grad_norm': '19.38', 'learning_rate': '0.0001837', 'epoch': '2.439'}
+{'eval_loss': '1.293', 'eval_runtime': '44.04', 'eval_samples_per_second': '99.18', 'eval_steps_per_second': '2.066', 'epoch': '2.439'}
+{'loss': '1.389', 'grad_norm': '15.77', 'learning_rate': '0.0001797', 'epoch': '3.049'}
+{'eval_loss': '1.157', 'eval_runtime': '44.98', 'eval_samples_per_second': '97.11', 'eval_steps_per_second': '2.023', 'epoch': '3.049'}
+{'loss': '1.286', 'grad_norm': '5.05', 'learning_rate': '0.0001756', 'epoch': '3.659'}
+{'eval_loss': '1.084', 'eval_runtime': '43.98', 'eval_samples_per_second': '99.31', 'eval_steps_per_second': '2.069', 'epoch': '3.659'}
+{'loss': '1.151', 'grad_norm': '8.554', 'learning_rate': '0.0001716', 'epoch': '4.268'}
+{'eval_loss': '0.9174', 'eval_runtime': '45.37', 'eval_samples_per_second': '96.27', 'eval_steps_per_second': '2.006', 'epoch': '4.268'}
+{'loss': '0.881', 'grad_norm': '9.001', 'learning_rate': '0.0001675', 'epoch': '4.878'}
+{'eval_loss': '0.5319', 'eval_runtime': '44.16', 'eval_samples_per_second': '98.91', 'eval_steps_per_second': '2.061', 'epoch': '4.878'}
+{'loss': '0.6004', 'grad_norm': '1.114', 'learning_rate': '0.0001634', 'epoch': '5.488'}
+{'eval_loss': '0.3877', 'eval_runtime': '45.05', 'eval_samples_per_second': '96.96', 'eval_steps_per_second': '2.02', 'epoch': '5.488'}
+{'loss': '0.4598', 'grad_norm': '2.466', 'learning_rate': '0.0001594', 'epoch': '6.098'}
+{'eval_loss': '0.3173', 'eval_runtime': '44.08', 'eval_samples_per_second': '99.08', 'eval_steps_per_second': '2.064', 'epoch': '6.098'}
+{'loss': '0.3901', 'grad_norm': '4.187', 'learning_rate': '0.0001553', 'epoch': '6.707'}
+{'eval_loss': '0.2969', 'eval_runtime': '44.06', 'eval_samples_per_second': '99.14', 'eval_steps_per_second': '2.065', 'epoch': '6.707'}
+{'loss': '0.3394', 'grad_norm': '5.644', 'learning_rate': '0.0001512', 'epoch': '7.317'}
+{'eval_loss': '0.2636', 'eval_runtime': '45.25', 'eval_samples_per_second': '96.53', 'eval_steps_per_second': '2.011', 'epoch': '7.317'}
+{'loss': '0.3127', 'grad_norm': '7.481', 'learning_rate': '0.0001472', 'epoch': '7.927'}
+{'eval_loss': '0.2591', 'eval_runtime': '43.87', 'eval_samples_per_second': '99.58', 'eval_steps_per_second': '2.074', 'epoch': '7.927'}
+{'loss': '0.2858', 'grad_norm': '1.918', 'learning_rate': '0.0001431', 'epoch': '8.537'}
+{'eval_loss': '0.2379', 'eval_runtime': '45.22', 'eval_samples_per_second': '96.59', 'eval_steps_per_second': '2.012', 'epoch': '8.537'}
+{'loss': '0.2638', 'grad_norm': '1.53', 'learning_rate': '0.000139', 'epoch': '9.146'}
+{'eval_loss': '0.2264', 'eval_runtime': '44.24', 'eval_samples_per_second': '98.72', 'eval_steps_per_second': '2.057', 'epoch': '9.146'}
+{'loss': '0.2465', 'grad_norm': '2.445', 'learning_rate': '0.000135', 'epoch': '9.756'}
+{'eval_loss': '0.2157', 'eval_runtime': '45.36', 'eval_samples_per_second': '96.29', 'eval_steps_per_second': '2.006', 'epoch': '9.756'}
+{'loss': '0.2342', 'grad_norm': '3.753', 'learning_rate': '0.0001309', 'epoch': '10.37'}
+{'eval_loss': '0.2144', 'eval_runtime': '43.92', 'eval_samples_per_second': '99.46', 'eval_steps_per_second': '2.072', 'epoch': '10.37'}
+{'loss': '0.2256', 'grad_norm': '3.206', 'learning_rate': '0.0001268', 'epoch': '10.98'}
+{'eval_loss': '0.2046', 'eval_runtime': '45.15', 'eval_samples_per_second': '96.75', 'eval_steps_per_second': '2.016', 'epoch': '10.98'}
+{'loss': '0.2154', 'grad_norm': '3.529', 'learning_rate': '0.0001228', 'epoch': '11.59'}
+{'eval_loss': '0.2121', 'eval_runtime': '44.18', 'eval_samples_per_second': '98.88', 'eval_steps_per_second': '2.06', 'epoch': '11.59'}
+{'loss': '0.2025', 'grad_norm': '1.608', 'learning_rate': '0.0001187', 'epoch': '12.2'}
+{'eval_loss': '0.2004', 'eval_runtime': '45.41', 'eval_samples_per_second': '96.19', 'eval_steps_per_second': '2.004', 'epoch': '12.2'}
+{'loss': '0.1958', 'grad_norm': '7.865', 'learning_rate': '0.0001146', 'epoch': '12.8'}
+{'eval_loss': '0.226', 'eval_runtime': '44.08', 'eval_samples_per_second': '99.09', 'eval_steps_per_second': '2.064', 'epoch': '12.8'}
+{'loss': '0.1923', 'grad_norm': '1.428', 'learning_rate': '0.0001106', 'epoch': '13.41'}
+{'eval_loss': '0.1967', 'eval_runtime': '45.05', 'eval_samples_per_second': '96.95', 'eval_steps_per_second': '2.02', 'epoch': '13.41'}
+{'loss': '0.1832', 'grad_norm': '1.939', 'learning_rate': '0.0001065', 'epoch': '14.02'}
+{'eval_loss': '0.1934', 'eval_runtime': '44.02', 'eval_samples_per_second': '99.22', 'eval_steps_per_second': '2.067', 'epoch': '14.02'}
+{'loss': '0.1747', 'grad_norm': '1.901', 'learning_rate': '0.0001024', 'epoch': '14.63'}
+{'eval_loss': '0.1885', 'eval_runtime': '44.22', 'eval_samples_per_second': '98.78', 'eval_steps_per_second': '2.058', 'epoch': '14.63'}
+{'loss': '0.1708', 'grad_norm': '3.494', 'learning_rate': '9.838e-05', 'epoch': '15.24'}
+{'eval_loss': '0.1926', 'eval_runtime': '45.29', 'eval_samples_per_second': '96.44', 'eval_steps_per_second': '2.009', 'epoch': '15.24'}
+{'loss': '0.1688', 'grad_norm': '0.4525', 'learning_rate': '9.432e-05', 'epoch': '15.85'}
+{'eval_loss': '0.1845', 'eval_runtime': '43.85', 'eval_samples_per_second': '99.61', 'eval_steps_per_second': '2.075', 'epoch': '15.85'}
+{'loss': '0.1582', 'grad_norm': '0.9367', 'learning_rate': '9.025e-05', 'epoch': '16.46'}
+{'eval_loss': '0.1921', 'eval_runtime': '45.22', 'eval_samples_per_second': '96.61', 'eval_steps_per_second': '2.013', 'epoch': '16.46'}
+{'loss': '0.1582', 'grad_norm': '3.333', 'learning_rate': '8.619e-05', 'epoch': '17.07'}
+{'eval_loss': '0.1944', 'eval_runtime': '44.21', 'eval_samples_per_second': '98.8', 'eval_steps_per_second': '2.058', 'epoch': '17.07'}
+{'loss': '0.1508', 'grad_norm': '0.9494', 'learning_rate': '8.212e-05', 'epoch': '17.68'}
+{'eval_loss': '0.1938', 'eval_runtime': '45.33', 'eval_samples_per_second': '96.36', 'eval_steps_per_second': '2.008', 'epoch': '17.68'}
+{'train_runtime': '2.1e+04', 'train_samples_per_second': '56.16', 'train_steps_per_second': '1.171', 'train_loss': '0.8612', 'epoch': '17.68'}
+Evaluating (Mean Loss)...
+Calculating per-sequence surprisals...
+Fold 10 Evaluation per token: 0.1845
+Fold 10 Entropy per sequence: 14.2917
+Saving detailed results...
+Saved per-sequence surprisals to /home/jm3743/prosody-syntax-interface/outputs/pause_text/cross_validation_results.csv
+Global Mean Surprisal: 87.3992
+
+--- Cross-Validation Results ---
+Individual Fold Metrics: [14.165557611572522, 14.154570144537004, 14.57316129678526, 14.746505408906021, 14.947082131814497, 15.32884250698618, 15.455977677152708, 14.470964778068, 14.450793612823437, 14.291718571805037]
+Mean Metric (Entropy/Loss): 14.6585
+Standard Deviation: 0.4351
+Variance: 0.1893
