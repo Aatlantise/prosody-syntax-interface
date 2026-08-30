@@ -416,23 +416,9 @@ g <- ggplot() +
     panel.grid.minor = element_blank(),
     panel.grid.major = element_line(color = "#f1f3f5"),
     legend.position = "bottom",
-    # legend.box = "horizontal",
     legend.box = "horizontal",
     legend.margin = margin(t = -5, b = 5),
-    # axis.title = element_text(face = "bold")
   ) +
-  # # Increase legend visibility for lines
-  # guides(
-  #   color = guide_legend(
-  #     nrow = 1,
-  # order = 1
-  # ),
-  # linetype = guide_legend(
-  #   nrow = 2,
-  # order = 2,
-  # # Forces the linetype legend lines to be a crisp, matching slate color
-  #   override.aes = list(color = "#2c3e50", size = 0.8)
-  # )
   guides(linetype = guide_legend(
                                  override.aes = list(color = "#2c3e50", size = 0.5))
   )
@@ -443,5 +429,100 @@ ggsave("candor_sic_with_scatterplot.pdf", plot = g, width = 4, height = 3, dpi =
 
 ```
 
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
 
+# 1. Prepare master data with human-readable facet labels
+lines_data_labeled <- lines_data %>%
+  mutate(
+    Metric_Type = case_when(
+      grepl("word", tolower(Metric_Type)) ~ "Sent length (words)",
+      grepl("depth", tolower(Metric_Type)) ~ "Max parse depth",
+      TRUE ~ Metric_Type
+    )
+  )
+
+# 2. Filter to zoomed bounds: 0-50 for words, 0-30 for parse depth
+lines_data_filtered <- lines_data_labeled %>%
+  filter(
+    (Metric_Type == "Sent length (words)" & X_Value >= 0 & X_Value <= 50) |
+    (Metric_Type == "Max parse depth" & X_Value >= 0 & X_Value <= 30)
+  )
+
+# 3. Compute binned empirical means & 95% CIs
+binned_data <- lines_data_filtered %>%
+  mutate(X_Bin = round(X_Value)) %>%
+  group_by(Metric_Type, Modality, Task, X_Bin) %>%
+  summarise(
+    mean_sic = mean(sic, na.rm = TRUE),
+    se_sic   = sd(sic, na.rm = TRUE) / sqrt(n()),
+    count    = n(),
+    .groups  = "drop"
+  ) %>%
+  filter(count >= 10) %>%
+  mutate(
+    ci_lower = mean_sic - 1.96 * se_sic,
+    ci_upper = mean_sic + 1.96 * se_sic
+  )
+
+# 4. Plotting
+academic_colors <- c("Pau" = "#E28F41", "Dur" = "#4E9C81")
+
+g <- ggplot() +
+  # Empirical Binned Means + 95% CIs
+  geom_pointrange(
+    data = binned_data,
+    aes(x = X_Bin, y = mean_sic, ymin = ci_lower, ymax = ci_upper, color = Modality, shape = Task),
+    size = 0.3, alpha = 0.6, position = position_dodge(width = 0.4), show.legend = FALSE
+  ) +
+  
+  # Linear Regression Lines
+  geom_smooth(
+    data = lines_data_filtered,
+    aes(x = X_Value, y = sic, color = Modality, linetype = Task),
+    method = "lm", formula = y ~ x, alpha = 0.15, size = 0.6
+  ) +
+
+  # Faceting & Aesthetics
+  facet_wrap(~ Metric_Type, nrow = 1, scales = "free_x") +
+  scale_color_manual(values = academic_colors) +
+  scale_shape_manual(values = c("Full parse" = 16, "Brackets" = 17)) +
+  scale_linetype_manual(values = c("Full parse" = "solid", "Brackets" = "dashed")) +
+
+  coord_cartesian(ylim = c(-1, 8)) +
+
+  labs(
+    x = "CANDOR Sentence Features",
+    y = expression(
+      atop(
+        "Pointwise Syntactic Information Content",
+        paste(iota, "(s) - ", iota, "(s | p), in nats")
+      )
+    ),
+    
+    color = "",
+    linetype = ""
+  ) +
+
+  theme_bw(base_size = 11) + 
+  theme(
+    strip.background = element_rect(fill = "#f8f9fa", color = "#dee2e6"),
+    strip.text = element_text(face = "bold", size = 10, color = "#212529"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "#f1f3f5"),
+    legend.position = "bottom",
+    legend.box = "horizontal",
+    legend.margin = margin(t = -5, b = 5),
+    axis.title = element_text(size = 10)
+  ) +
+  guides(
+    linetype = guide_legend(override.aes = list(color = "#2c3e50", size = 0.6))
+  )
+
+print(g)
+ggsave("candor_sic_binned.pdf", plot = g, width = 4, height = 3, dpi = 300)
+
+```
 
