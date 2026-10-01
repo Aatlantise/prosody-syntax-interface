@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import sys
+from scipy import stats
+
 
 def load_and_align(path_dict):
     """
@@ -12,98 +15,104 @@ def load_and_align(path_dict):
         if not Path(path).exists():
             print(f"Warning: File not found: {path}")
             continue
-            
+
         df = pd.read_csv(path)
         # We only need the index and the score
         df = df[['original_index', 'surprisal']].rename(columns={'surprisal': name})
-        
+
         if len(dfs) == 0:
             merged_df = df
             dfs.append(df)
         else:
             # Inner join ensures we only compare sequences that exist in both models
-            # (If your cross-validation was identical, this should preserve all rows)
             print(f"Loaded and merging {name}")
             merged_df = pd.merge(merged_df, df, on='original_index', how='inner')
 
     return merged_df
 
-def paired_permutation_test(data, col_a, col_b, n_permutations=10000):
+
+def paired_wilcoxon_test(data, col_a, col_b):
     """
-    Runs a paired permutation test between two columns.
-    Null Hypothesis: The mean difference between the two models is zero.
+    Runs a paired Wilcoxon signed-rank test between two aligned sequence columns.
+
+    Returns:
+        mean_diff: Mean difference (A - B) in nats. Positive means B achieves lower surprisal.
+        p_value: Two-sided p-value testing distributional shift.
+        r_rb: Rank-Biserial Correlation effect size [-1.0 to +1.0].
     """
-    # 1. Calculate observed difference in means (A - B)
-    # If A is baseline and B is better, this should be positive (Surprisal decreases)
-    # If we want "Is B better than A?", we look for a significant reduction.
+    # Difference vector: (A - B)
     diffs = data[col_a] - data[col_b]
-    obs_diff = np.mean(diffs)
-    
-    # 2. Permutation Step
-    # We randomly flip the sign of the differences.
-    # This simulates the null hypothesis where Model A and Model B are exchangeable.
-    
-    # Create a matrix of random signs [-1, 1]
-    # Shape: (n_permutations, n_samples)
-    signs = np.random.choice([-1, 1], size=(n_permutations, len(diffs)))
-    
-    # Multiply differences by signs and compute mean across samples for each permutation
-    # resulting shape: (n_permutations,)
-    perm_means = np.mean(diffs.values * signs, axis=1)
-    
-    # 3. Calculate p-value
-    # Two-sided test: proportion of permutations where abs(perm_mean) >= abs(obs_diff)
-    p_value = np.mean(perm_means <= obs_diff)
+    mean_diff = np.mean(diffs)
+
+    # Run two-sided paired Wilcoxon signed-rank test
+    res = stats.wilcoxon(data[col_a], data[col_b], alternative='two-sided', method='auto')
+
+    # Compute Rank-Biserial Correlation (r_rb) effect size
+    # r_rb = (W_pos - W_neg) / (W_pos + W_neg)
+    # Filter zero differences as scipy does by default
+    non_zero_diffs = diffs[diffs != 0]
+    ranks = stats.rankdata(np.abs(non_zero_diffs))
+
+    w_pos = np.sum(ranks[non_zero_diffs > 0])
+    w_neg = np.sum(ranks[non_zero_diffs < 0])
+    w_total = w_pos + w_neg
+
+    r_rb = (w_pos - w_neg) / w_total if w_total > 0 else 0.0
+
+    return mean_diff, res.pvalue, r_rb
 
 
-    return obs_diff, p_value
-
-def main():
+def main(dataset, cond):
     # 1. Define your file paths
     files = {
-        "baseline": "/home/jm3743/prosody-syntax-interface/outputs/cross_validation_results.csv",
-        "text": "/home/jm3743/prosody-syntax-interface/outputs/text/cross_validation_results.csv",
-        "pause": "/home/jm3743/prosody-syntax-interface/outputs/pause/cross_validation_results.csv",
-        "duration": "/home/jm3743/prosody-syntax-interface/outputs/duration/cross_validation_results.csv",
-        # "pause_text":    "/home/jm3743/prosody-syntax-interface/outputs/pause_text/cross_validation_results.csv",
-        # "duration_text": "/home/jm3743/prosody-syntax-interface/outputs/duration_text/cross_validation_results.csv",
+        "baseline": f"outputs/{dataset}_{cond}/cross_validation_results.csv",
+        "text": f"outputs/{dataset}_text_{cond}/cross_validation_results.csv",
+        "pause": f"outputs/{dataset}_pause_{cond}/cross_validation_results.csv",
+        "duration": f"outputs/{dataset}_duration_{cond}/cross_validation_results.csv",
+        "pause_text": f"outputs/{dataset}_text_pause_{cond}/cross_validation_results.csv",
+        "duration_text": f"outputs/{dataset}_text_duration_{cond}/cross_validation_results.csv",
     }
 
     print("Loading and aligning data...")
     df = load_and_align(files)
     print(f"Aligned {len(df)} sequences across all conditions.\n")
 
-    # 2. Define the comparisons you asked for
+    # 2. Define comparisons
     comparisons = [
         # (Model A, Model B) -> Is B significantly different from A?
         ("baseline", "text"),
         ("baseline", "pause"),
         ("baseline", "duration"),
-        # ("text", "pause_text"),
-        # ("text", "duration_text")
+        ("text", "pause_text"),
+        ("text", "duration_text")
     ]
 
-    print(f"{'Comparison':<30} | {'Mean Diff':<12} | {'P-Value':<10} | {'Result'}")
-    print("-" * 70)
+    print(f"{'Comparison':<30} | {'Mean Diff':<10} | {'r_rb':<8} | {'P-Value':<12} | {'Result'}")
+    print("-" * 75)
 
     for model_a, model_b in comparisons:
         if model_a not in df.columns or model_b not in df.columns:
             print(f"Skipping {model_a} vs {model_b} (data missing)")
             continue
 
-        # Run Test
-        diff, p = paired_permutation_test(df, model_a, model_b)
+        # Run Wilcoxon Test
+        diff, p, r_rb = paired_wilcoxon_test(df, model_a, model_b)
 
-        # Interpretation
-        # Diff is (Mean A - Mean B). Positive diff means A has HIGHER surprisal (B is better).
-        significance = "*" if p < 0.05 else "n.s."
+        # Significance tags
         if p < 0.001:
             significance = "***"
         elif p < 0.01:
             significance = "**"
+        elif p < 0.05:
+            significance = "*"
+        else:
+            significance = "n.s."
 
-        print(f"{model_a:<12} vs {model_b:<12} | {diff:>12.4f} | {p:>10.4f} | {significance}")
+        comp_name = f"{model_a} vs {model_b}"
+        print(f"{comp_name:<30} | {diff:>10.4f} | {r_rb:>8.4f} | {p:>12.4e} | {significance}")
 
 
 if __name__ == '__main__':
-    main()
+    # Usage example: python -m significance libri nopunct
+    assert len(sys.argv) == 3
+    main(sys.argv[1], sys.argv[2])

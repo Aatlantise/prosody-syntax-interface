@@ -1,0 +1,52 @@
+aatlantise@LAPTOP-AV2B6CIA:/mnt/h/Documents/Github/prosody-syntax-interface$ python3 -m constituency.disfluencies
+===========================================================
+ACCURATE UNCONSTRAINED FLUENCY ANALYSIS
+===========================================================
+
+--- Condition: Duration | Dyck Brackets (N = 297,930) ---
+  • Fluent Ratio: 80.20% (N = 238,952) | Mean Words: 11.99
+  • Non-Fluent:   19.80% (N = 58,978) | Mean Words: 17.90
+  • Raw SIC:      Fluent = 1.3627 nats | Non-Fluent = 1.6225 nats (t = -39.51, p = 0.0000e+00)
+  • SIC Density:  Fluent = 0.1396 nats/w | Non-Fluent = 0.1060 nats/w (t = 48.50, p = 0.0000e+00)
+
+--- Condition: Duration | Full Parse (N = 297,930) ---
+  • Fluent Ratio: 80.20% (N = 238,952) | Mean Words: 11.99
+  • Non-Fluent:   19.80% (N = 58,978) | Mean Words: 17.90
+  • Raw SIC:      Fluent = 3.3086 nats | Non-Fluent = 3.9087 nats (t = -50.88, p = 0.0000e+00)
+  • SIC Density:  Fluent = 0.3495 nats/w | Non-Fluent = 0.2920 nats/w (t = 41.51, p = 0.0000e+00)
+
+--- Condition: Pause | Dyck Brackets (N = 297,930) ---
+  • Fluent Ratio: 80.20% (N = 238,952) | Mean Words: 11.99
+  • Non-Fluent:   19.80% (N = 58,978) | Mean Words: 17.90
+  • Raw SIC:      Fluent = 1.1322 nats | Non-Fluent = 1.4504 nats (t = -58.70, p = 0.0000e+00)
+  • SIC Density:  Fluent = 0.1133 nats/w | Non-Fluent = 0.0913 nats/w (t = 41.43, p = 0.0000e+00)
+
+--- Condition: Pause | Full Parse (N = 297,930) ---
+  • Fluent Ratio: 80.20% (N = 238,952) | Mean Words: 11.99
+  • Non-Fluent:   19.80% (N = 58,978) | Mean Words: 17.90
+  • Raw SIC:      Fluent = 1.9005 nats | Non-Fluent = 2.6091 nats (t = -78.42, p = 0.0000e+00)
+  • SIC Density:  Fluent = 0.1984 nats/w | Non-Fluent = 0.1889 nats/w (t = 9.50, p = 2.1933e-21)
+
+===========================================================
+ACCURATE MATCHED-LENGTH FLUENCY ANALYSIS (1:1 Exact Matching)
+===========================================================
+
+--- Condition: Duration | Dyck Brackets (Matched Pair N = 58,224 per group) ---
+  • Matched Mean Words: 17.28 (Identical across groups)
+  • Matched Raw SIC:    Fluent = 1.68 nats | Non-Fluent = 1.58 nats (t = 11.08, p = 1.6909e-28)
+  • Matched Unc Coeff:  Fluent = 8.96% | Non-Fluent = 8.42%
+
+--- Condition: Duration | Full Parse (Matched Pair N = 58,224 per group) ---
+  • Matched Mean Words: 17.28 (Identical across groups)
+  • Matched Raw SIC:    Fluent = 3.69 nats | Non-Fluent = 3.88 nats (t = -11.76, p = 6.2627e-32)
+  • Matched Unc Coeff:  Fluent = 7.70% | Non-Fluent = 7.55%
+
+--- Condition: Pause | Dyck Brackets (Matched Pair N = 58,224 per group) ---
+  • Matched Mean Words: 17.28 (Identical across groups)
+  • Matched Raw SIC:    Fluent = 1.45 nats | Non-Fluent = 1.40 nats (t = 5.85, p = 5.0285e-09)
+  • Matched Unc Coeff:  Fluent = 7.74% | Non-Fluent = 7.49%
+
+--- Condition: Pause | Full Parse (Matched Pair N = 58,224 per group) ---
+  • Matched Mean Words: 17.28 (Identical across groups)
+  • Matched Raw SIC:    Fluent = 2.21 nats | Non-Fluent = 2.58 nats (t = -27.72, p = 1.4899e-168)
+  • Matched Unc Coeff:  Fluent = 4.61% | Non-Fluent = 5.02%
